@@ -3,511 +3,589 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Novena de Nossa Senhora Desatadora de Nós</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+  <title>Sagrado Coração de Jesus</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --plum: #1e0a35;
+      --violet: #6d28d9;
+      --lavender: #a78bfa;
+      --blush: #f7f3ff;
+      --white: #ffffff;
+      --text: #1a0a2e;
+      --muted: #6b5b8a;
+      --border: #e8dff5;
+    }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
-    body { font-family: 'Lato', sans-serif; background: #ffffff; color: #2c2c2c; overflow-x: hidden; }
+    body { font-family: 'Inter', sans-serif; background: var(--white); color: var(--text); overflow-x: hidden; }
 
-    /* ── UTILITÁRIOS ── */
-    .section-label {
-      font-size: 0.7rem; letter-spacing: 0.28em; text-transform: uppercase;
-      color: #b89a6a; margin-bottom: 1rem; display: block;
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      background: linear-gradient(140deg, #12002a 0%, #2d0f4e 45%, #1a0840 100%);
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      text-align: center; position: relative; overflow: hidden; padding: 5rem 2rem;
     }
-    .divider {
-      display: flex; align-items: center; gap: 1.5rem;
-      max-width: 300px; margin: 2.5rem auto;
+    .hero::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 65% 40%, rgba(109,40,217,0.25) 0%, transparent 65%);
+      pointer-events: none;
     }
-    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: #e0d8cc; }
-    .divider-icon { color: #b89a6a; font-size: 1rem; }
-    .reveal { opacity: 0; transform: translateY(18px); transition: opacity 0.55s ease, transform 0.55s ease; }
-    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .hero-deco {
+      position: absolute; font-size: 22rem; color: rgba(167,139,250,0.04);
+      font-family: 'Playfair Display', serif; font-style: italic; font-weight: 700;
+      right: -3rem; top: 50%; transform: translateY(-50%);
+      pointer-events: none; user-select: none; line-height: 1;
+    }
+    .hero-nav {
+      position: fixed; top: 1.5rem; right: 1.5rem; z-index: 200;
+      display: flex; gap: 0.4rem; flex-wrap: wrap; justify-content: flex-end; max-width: 400px;
+    }
+    .hero-nav a {
+      text-decoration: none; font-size: 0.6rem; letter-spacing: 0.14em; text-transform: uppercase;
+      font-weight: 600; color: rgba(255,255,255,0.88);
+      background: rgba(30,10,53,0.82); border: 1px solid rgba(167,139,250,0.2);
+      padding: 0.4rem 0.85rem; border-radius: 100px; transition: all 0.25s; backdrop-filter: blur(12px);
+    }
+    .hero-nav a:hover { background: var(--violet); color: white; border-color: var(--violet); }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      font-size: 0.65rem; letter-spacing: 0.28em; text-transform: uppercase;
+      color: var(--lavender); margin-bottom: 2.5rem;
+      background: rgba(167,139,250,0.1); border: 1px solid rgba(167,139,250,0.22);
+      padding: 0.55rem 1.5rem; border-radius: 100px;
+    }
+    .hero h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(3.2rem, 9vw, 7.5rem);
+      font-weight: 400; color: #ffffff; line-height: 1.08; margin-bottom: 1.8rem;
+    }
+    .hero h1 em { font-style: italic; color: var(--lavender); display: block; }
+    .hero-sub {
+      font-size: 1.05rem; color: rgba(255,255,255,0.52); font-weight: 300;
+      max-width: 460px; line-height: 1.95; margin-bottom: 0;
+    }
+    .hero-scroll {
+      position: absolute; bottom: 2.5rem; left: 50%; transform: translateX(-50%);
+      display: flex; flex-direction: column; align-items: center; gap: 0.6rem;
+      font-size: 0.6rem; letter-spacing: 0.22em; text-transform: uppercase;
+      color: rgba(255,255,255,0.28);
+    }
+    .hero-scroll-line {
+      width: 1px; height: 44px;
+      background: linear-gradient(to bottom, rgba(167,139,250,0.5), transparent);
+    }
 
-    /* ── HEADER ── */
-    header {
-      background: #ffffff; text-align: center;
-      padding: 5.5rem 2rem 4.5rem; border-bottom: 1px solid #f0ede8;
+    /* ── INTRO SPLIT ── */
+    #intro {
+      display: grid; grid-template-columns: 1fr 1fr;
+      max-width: 1100px; margin: 0 auto; padding: 9rem 2rem; gap: 7rem; align-items: center;
     }
-    .header-eyebrow {
-      font-size: 0.7rem; letter-spacing: 0.3em; text-transform: uppercase;
-      color: #b89a6a; margin-bottom: 1.4rem;
-      display: flex; align-items: center; justify-content: center; gap: 1rem;
+    .intro-left {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.9rem, 3vw, 2.9rem);
+      font-style: italic; font-weight: 400; color: var(--plum); line-height: 1.4;
+      border-left: 4px solid var(--lavender); padding-left: 2.2rem;
     }
-    .header-eyebrow::before, .header-eyebrow::after {
-      content: ''; display: block; width: 36px; height: 1px; background: #b89a6a;
+    .intro-right .tag {
+      font-size: 0.65rem; letter-spacing: 0.28em; text-transform: uppercase;
+      color: var(--violet); display: block; margin-bottom: 1.5rem; font-weight: 600;
     }
-    header h1 {
-      font-family: 'Cormorant Garamond', serif; font-size: clamp(2.2rem, 5vw, 4rem);
-      font-weight: 300; color: #1a1209; line-height: 1.15; margin-bottom: 0.6rem;
-    }
-    header h1 em { font-style: italic; color: #6b3f2a; }
-    .header-sub {
-      font-size: 1rem; color: #7a6a5a; font-weight: 300;
-      margin-top: 1.2rem; max-width: 520px; margin-left: auto; margin-right: auto; line-height: 1.85;
-    }
-    .ornament { color: #c8a96a; font-size: 1.4rem; margin: 1.8rem 0 0; letter-spacing: 0.6rem; }
+    .intro-right p { font-size: 1rem; line-height: 2; color: var(--muted); font-weight: 300; }
+    .intro-right p + p { margin-top: 1.2rem; }
 
-    /* ── NAV ── */
-    nav {
-      position: sticky; top: 0; z-index: 100;
-      background: rgba(255,255,255,0.97); backdrop-filter: blur(10px);
-      border-bottom: 1px solid #f0ede8;
-      padding: 0.85rem 2rem;
-      display: flex; justify-content: center; gap: 2.2rem; flex-wrap: wrap;
+    /* ── HISTÓRIA TIMELINE ── */
+    #historia { background: var(--plum); padding: 8rem 2rem; }
+    .historia-wrap { max-width: 860px; margin: 0 auto; }
+    .section-top { text-align: center; margin-bottom: 5rem; }
+    .section-top .tag {
+      font-size: 0.65rem; letter-spacing: 0.28em; text-transform: uppercase;
+      color: var(--lavender); display: block; margin-bottom: 1rem; font-weight: 600;
     }
-    nav a {
-      text-decoration: none; font-size: 0.72rem; letter-spacing: 0.16em;
-      text-transform: uppercase; font-weight: 700; color: #7a6a5a; transition: color 0.3s;
+    .section-top h2 {
+      font-family: 'Playfair Display', serif; font-size: clamp(2rem, 4vw, 3.2rem);
+      font-weight: 400; color: white; line-height: 1.2;
     }
-    nav a:hover { color: #6b3f2a; }
-
-    /* ── INTRO ── */
-    .intro { max-width: 780px; margin: 0 auto; padding: 5rem 2rem; text-align: center; }
-    .intro h2 {
-      font-family: 'Cormorant Garamond', serif; font-size: clamp(1.8rem, 3vw, 2.7rem);
-      font-weight: 300; color: #1a1209; margin-bottom: 1.5rem; line-height: 1.3;
+    .section-top h2.dark { color: var(--plum); }
+    .timeline { position: relative; padding-left: 3.5rem; }
+    .timeline::before {
+      content: ''; position: absolute; left: 0; top: 4px; bottom: 0;
+      width: 1px; background: rgba(167,139,250,0.2);
     }
-    .intro p { font-size: 1rem; line-height: 1.95; color: #5a4e42; font-weight: 300; }
-    .intro p + p { margin-top: 1.2rem; }
-
-    /* ── HISTÓRIA ── */
-    #historia { background: #faf9f7; border-top: 1px solid #f0ede8; border-bottom: 1px solid #f0ede8; padding: 5.5rem 2rem; }
-    .historia-inner { max-width: 1000px; margin: 0 auto; }
-    .historia-inner > .section-label, .historia-inner > h2 { text-align: center; }
-    .historia-inner h2 {
-      font-family: 'Cormorant Garamond', serif; font-size: clamp(1.8rem, 3vw, 2.6rem);
-      font-weight: 300; color: #1a1209; margin-bottom: 3rem;
+    .tl-item { position: relative; margin-bottom: 4.5rem; }
+    .tl-item:last-child { margin-bottom: 0; }
+    .tl-dot {
+      position: absolute; left: -3.9rem; top: 0.5rem;
+      width: 14px; height: 14px; border-radius: 50%;
+      background: var(--lavender); border: 3px solid var(--plum);
+      box-shadow: 0 0 0 4px rgba(167,139,250,0.2);
     }
-    .historia-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-    .historia-card {
-      background: #ffffff; border: 1px solid #ece8e2; padding: 2.4rem 2rem;
+    .tl-year {
+      font-size: 0.75rem; letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--lavender); margin-bottom: 0.5rem; font-weight: 500;
     }
-    .historia-card-num {
-      font-family: 'Cormorant Garamond', serif; font-size: 3rem; color: #f0e8dc;
-      font-weight: 300; line-height: 1; margin-bottom: 0.6rem;
+    .tl-item h3 {
+      font-family: 'Playfair Display', serif; font-size: 1.35rem;
+      font-weight: 700; color: white; margin-bottom: 0.7rem;
     }
-    .historia-card h4 {
-      font-family: 'Cormorant Garamond', serif; font-size: 1.15rem; font-weight: 600;
-      color: #1a1209; margin-bottom: 0.7rem;
+    .tl-item p { font-size: 0.92rem; line-height: 1.9; color: rgba(255,255,255,0.5); font-weight: 300; }
+    .tl-quote {
+      margin-top: 5rem; padding: 3rem 3.5rem;
+      background: rgba(167,139,250,0.06); border: 1px solid rgba(167,139,250,0.14);
+      border-radius: 20px; text-align: center;
     }
-    .historia-card p { font-size: 0.9rem; line-height: 1.85; color: #5a4e42; font-weight: 300; }
-    .historia-quote {
-      margin-top: 3.5rem; text-align: center; max-width: 680px; margin-left: auto; margin-right: auto;
+    .tl-quote blockquote {
+      font-family: 'Playfair Display', serif; font-size: 1.45rem; font-style: italic;
+      color: rgba(255,255,255,0.88); line-height: 1.75; margin-bottom: 1rem; font-weight: 400;
     }
-    .historia-quote blockquote {
-      font-family: 'Cormorant Garamond', serif; font-size: 1.35rem; font-style: italic;
-      font-weight: 300; color: #3b2310; line-height: 1.8; margin-bottom: 1rem;
-    }
-    .historia-quote cite { font-size: 0.75rem; color: #b89a6a; letter-spacing: 0.2em; text-transform: uppercase; }
+    .tl-quote cite { font-size: 0.7rem; color: var(--lavender); letter-spacing: 0.2em; text-transform: uppercase; }
 
     /* ── A IMAGEM ── */
-    #a-imagem { padding: 5.5rem 2rem; max-width: 1000px; margin: 0 auto; }
-    #a-imagem > .section-label, #a-imagem > h2 { text-align: center; }
-    #a-imagem h2 {
-      font-family: 'Cormorant Garamond', serif; font-size: clamp(1.8rem, 3vw, 2.6rem);
-      font-weight: 300; color: #1a1209; margin-bottom: 3rem;
+    #a-imagem { padding: 8rem 2rem; }
+    .imagem-wrap { max-width: 1100px; margin: 0 auto; }
+    .img-card {
+      background: var(--plum); border-radius: 28px; overflow: hidden;
+      display: grid; grid-template-columns: 280px 1fr;
+      box-shadow: 0 32px 80px rgba(30,10,53,0.22);
     }
-    .imagem-layout { display: grid; grid-template-columns: 340px 1fr; gap: 5rem; align-items: center; }
-    .imagem-foto { position: relative; }
-    .imagem-foto img {
-      width: 100%; display: block;
-      border: 1px solid #e8e2d8;
-      box-shadow: 0 12px 40px rgba(0,0,0,0.10);
+    .img-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .img-card-body { padding: 4rem; }
+    .img-card-body .tag {
+      font-size: 0.65rem; letter-spacing: 0.28em; text-transform: uppercase;
+      color: var(--lavender); display: block; margin-bottom: 2rem; font-weight: 600;
     }
-    .imagem-foto-label {
-      background: #1a1209; color: rgba(245,240,232,0.65);
-      padding: 1rem 1.2rem; margin-top: 3px;
-      font-size: 0.72rem; letter-spacing: 0.08em; text-align: center; line-height: 1.6;
+    .img-card-body h2 {
+      font-family: 'Playfair Display', serif; font-size: clamp(1.6rem, 3vw, 2.4rem);
+      font-weight: 400; color: white; margin-bottom: 2.5rem; line-height: 1.25;
     }
-    .imagem-elementos { display: flex; flex-direction: column; gap: 1.8rem; }
-    .elemento-item { display: flex; align-items: flex-start; gap: 1.2rem; }
-    .elemento-icon {
-      flex-shrink: 0; width: 42px; height: 42px;
-      border: 1px solid #e0d8cc; display: flex; align-items: center; justify-content: center;
-      font-size: 1.1rem; background: #faf9f7;
+    .elem-list { display: flex; flex-direction: column; gap: 1.5rem; }
+    .elem-row { display: flex; gap: 1.2rem; align-items: flex-start; }
+    .elem-ico {
+      width: 40px; height: 40px; flex-shrink: 0; border-radius: 12px;
+      background: rgba(167,139,250,0.1); border: 1px solid rgba(167,139,250,0.18);
+      display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
     }
-    .elemento-item h4 {
-      font-family: 'Cormorant Garamond', serif; font-size: 1.05rem; font-weight: 600;
-      color: #1a1209; margin-bottom: 0.3rem;
+    .elem-row h4 {
+      font-family: 'Playfair Display', serif; font-size: 1rem;
+      font-weight: 700; color: white; margin-bottom: 0.25rem;
     }
-    .elemento-item p { font-size: 0.85rem; line-height: 1.75; color: #5a4e42; font-weight: 300; }
+    .elem-row p { font-size: 0.82rem; line-height: 1.78; color: rgba(255,255,255,0.48); font-weight: 300; }
 
-    /* ── TIPOS DE NÓS ── */
-    #nos { background: #faf9f7; border-top: 1px solid #f0ede8; border-bottom: 1px solid #f0ede8; padding: 5.5rem 2rem; }
-    .nos-inner { max-width: 1000px; margin: 0 auto; }
-    .nos-inner > .section-label, .nos-inner > h2, .nos-inner > .nos-sub { text-align: center; }
-    .nos-inner h2 {
-      font-family: 'Cormorant Garamond', serif; font-size: clamp(1.8rem, 3vw, 2.6rem);
-      font-weight: 300; color: #1a1209; margin-bottom: 0.8rem;
+    /* ── INTENÇÕES ── */
+    #nos { background: var(--blush); padding: 8rem 2rem; }
+    .nos-wrap { max-width: 1100px; margin: 0 auto; }
+    .intencoes-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.2rem; margin-top: 4rem; }
+    .int-card {
+      background: white; border-radius: 22px; padding: 2.4rem 2rem;
+      border: 1px solid var(--border);
+      transition: transform 0.3s, box-shadow 0.3s;
     }
-    .nos-sub { font-size: 0.95rem; color: #7a6a5a; font-weight: 300; max-width: 560px; margin: 0 auto 3rem; line-height: 1.85; }
-    .nos-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.2rem; }
-    .no-card {
-      background: #ffffff; border: 1px solid #ece8e2; padding: 2rem 1.6rem;
-      transition: border-color 0.3s, transform 0.3s;
+    .int-card:hover { transform: translateY(-6px); box-shadow: 0 24px 60px rgba(109,40,217,0.1); }
+    .int-icon { font-size: 2.2rem; margin-bottom: 1.2rem; }
+    .int-card h4 {
+      font-family: 'Playfair Display', serif; font-size: 1.1rem;
+      font-weight: 700; color: var(--plum); margin-bottom: 0.55rem;
     }
-    .no-card:hover { border-color: #b89a6a; transform: translateY(-3px); }
-    .no-icon { font-size: 2rem; margin-bottom: 1rem; }
-    .no-card h4 {
-      font-family: 'Cormorant Garamond', serif; font-size: 1.05rem; font-weight: 600;
-      color: #1a1209; margin-bottom: 0.5rem;
-    }
-    .no-card p { font-size: 0.83rem; line-height: 1.75; color: #7a6a5a; font-weight: 300; }
-    .no-tag {
-      display: inline-block; margin-top: 0.9rem; font-size: 0.65rem;
-      letter-spacing: 0.15em; text-transform: uppercase; color: #b89a6a; font-weight: 700;
+    .int-card p { font-size: 0.83rem; line-height: 1.82; color: var(--muted); }
+    .int-tag {
+      display: inline-block; margin-top: 1.1rem; font-size: 0.6rem;
+      letter-spacing: 0.16em; text-transform: uppercase; color: var(--violet);
+      background: #ede8ff; padding: 0.3rem 0.85rem; border-radius: 100px; font-weight: 600;
     }
 
     /* ── COMO REZAR ── */
-    #como-rezar { padding: 5.5rem 2rem; }
-    .como-inner { max-width: 920px; margin: 0 auto; }
-    .como-inner > .section-label, .como-inner > h2 { text-align: center; }
-    .como-inner h2 {
-      font-family: 'Cormorant Garamond', serif; font-size: clamp(1.7rem, 3vw, 2.5rem);
-      font-weight: 300; color: #1a1209; margin-bottom: 3rem;
+    #como-rezar { padding: 8rem 2rem; max-width: 880px; margin: 0 auto; }
+    .step-list { display: flex; flex-direction: column; margin-top: 4rem; }
+    .step-row {
+      display: grid; grid-template-columns: 110px 1fr;
+      gap: 2.5rem; padding: 3rem 0; border-bottom: 1px solid var(--border); align-items: start;
     }
-    .steps-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; }
-    .step-card {
-      background: #faf9f7; border: 1px solid #ece8e2; padding: 2rem 1.6rem; text-align: center;
-      transition: border-color 0.3s;
+    .step-row:first-child { padding-top: 0; }
+    .step-row:last-child { border-bottom: none; }
+    .step-n {
+      font-family: 'Playfair Display', serif; font-size: 5.5rem;
+      line-height: 1; font-weight: 700; color: #c4b0e8; text-align: right;
     }
-    .step-card:hover { border-color: #b89a6a; }
-    .step-num {
-      font-family: 'Cormorant Garamond', serif; font-size: 2.4rem;
-      color: #d4b896; font-weight: 300; margin-bottom: 0.6rem; line-height: 1;
+    .step-text h4 {
+      font-family: 'Playfair Display', serif; font-size: 1.3rem;
+      font-weight: 700; color: var(--plum); margin-bottom: 0.6rem; padding-top: 0.8rem;
     }
-    .step-card h4 {
-      font-family: 'Cormorant Garamond', serif; font-size: 1.05rem; font-weight: 600;
-      color: #1a1209; margin-bottom: 0.6rem;
-    }
-    .step-card p { font-size: 0.85rem; line-height: 1.75; color: #7a6a5a; font-weight: 300; }
+    .step-text p { font-size: 0.93rem; line-height: 1.9; color: var(--muted); }
 
     /* ── ORAÇÃO INICIAL ── */
     #oracao-inicial {
-      background: #faf9f7; border-top: 1px solid #f0ede8; border-bottom: 1px solid #f0ede8;
-      padding: 5rem 2rem;
+      background: linear-gradient(135deg, #12002a 0%, #3d1570 100%);
+      padding: 8rem 2rem; text-align: center;
     }
-    #oracao-inicial > div { max-width: 820px; margin: 0 auto; text-align: center; }
-    #oracao-inicial h2 {
-      font-family: 'Cormorant Garamond', serif; font-size: clamp(1.7rem, 3vw, 2.4rem);
-      font-weight: 300; color: #1a1209; margin-bottom: 0.5rem;
+    .oracao-inner { max-width: 680px; margin: 0 auto; }
+    .oracao-inner .tag {
+      font-size: 0.65rem; letter-spacing: 0.28em; text-transform: uppercase;
+      color: var(--lavender); display: block; margin-bottom: 1.2rem; font-weight: 600;
     }
-    #oracao-inicial .sub { font-size: 0.9rem; color: #7a6a5a; font-weight: 300; margin-bottom: 2rem; }
-    .prayer-box {
-      background: #ffffff; border: 1px solid #e8e2d8; border-left: 3px solid #b89a6a;
-      padding: 2.5rem 3rem; text-align: left;
-      font-family: 'Cormorant Garamond', serif; font-size: 1.08rem;
-      line-height: 2.1; color: #2c2c2c; font-weight: 300; font-style: italic;
+    .oracao-inner h2 {
+      font-family: 'Playfair Display', serif; font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 400; color: white; margin-bottom: 0.6rem;
     }
-    .prayer-box p + p { margin-top: 1rem; }
+    .oracao-inner .sub { font-size: 0.88rem; color: rgba(255,255,255,0.42); margin-bottom: 3.5rem; }
+    .prayer-text {
+      font-family: 'Playfair Display', serif; font-size: 1.22rem;
+      font-style: italic; font-weight: 400; line-height: 2.1;
+      color: rgba(255,255,255,0.86);
+    }
+    .prayer-text p + p { margin-top: 1.2rem; }
+    .prayer-hr { width: 50px; height: 1px; background: rgba(167,139,250,0.45); margin: 2.8rem auto; }
 
-    /* ── NOVENA 9 DIAS ── */
-    #novena { padding: 5rem 2rem 6rem; max-width: 880px; margin: 0 auto; }
-    #novena > .section-label, #novena > h2 { text-align: center; }
-    #novena > h2 {
-      font-family: 'Cormorant Garamond', serif; font-size: clamp(1.8rem, 3vw, 2.6rem);
-      font-weight: 300; color: #1a1209; margin-bottom: 3rem;
+    /* ── 9 DIAS COM TABS ── */
+    #novena { padding: 8rem 2rem; max-width: 900px; margin: 0 auto; }
+    .day-tabs {
+      display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; margin: 3.5rem 0 3rem;
     }
-    .dia-item { border: 1px solid #ece8e2; margin-bottom: 0.8rem; transition: box-shadow 0.3s; }
-    .dia-item:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.04); }
-    .dia-header {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 1.4rem 2rem; cursor: pointer; background: #ffffff; transition: background 0.2s; gap: 1rem;
-    }
-    .dia-header:hover { background: #faf9f7; }
-    .dia-header-left { display: flex; align-items: center; gap: 1.4rem; }
-    .dia-badge {
-      flex-shrink: 0; width: 44px; height: 44px; border: 1px solid #e0d8cc;
+    .day-tab {
+      width: 48px; height: 48px; border-radius: 50%;
+      border: 2px solid var(--border); background: white;
+      font-family: 'Playfair Display', serif; font-size: 0.92rem; font-weight: 700;
+      color: var(--muted); cursor: pointer; transition: all 0.25s;
       display: flex; align-items: center; justify-content: center;
-      font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; color: #b89a6a; font-weight: 300;
     }
-    .dia-title h3 {
-      font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; font-weight: 600;
-      color: #1a1209; margin-bottom: 0.15rem;
+    .day-tab:hover { border-color: var(--violet); color: var(--violet); }
+    .day-tab.active { background: var(--violet); border-color: var(--violet); color: white; }
+    .day-panel { display: none; }
+    .day-panel.active { display: block; }
+    .day-panel-box {
+      background: var(--blush); border-radius: 28px; padding: 4rem;
+      border: 1px solid var(--border);
     }
-    .dia-title span { font-size: 0.72rem; color: #a09080; letter-spacing: 0.1em; text-transform: uppercase; }
-    .dia-toggle {
-      flex-shrink: 0; width: 28px; height: 28px; border: 1px solid #e0d8cc;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1rem; color: #b89a6a; transition: transform 0.3s, background 0.3s;
+    .day-big-num {
+      font-family: 'Playfair Display', serif; font-size: 6rem;
+      color: #b8a8e0; font-weight: 700; line-height: 1; margin-bottom: 0.2rem;
     }
-    .dia-item.open .dia-toggle { transform: rotate(45deg); background: #f5f0e8; }
-    .dia-body { display: none; padding: 0 2rem 2.2rem; border-top: 1px solid #f0ede8; }
-    .dia-item.open .dia-body { display: block; }
-    .dia-meditacao { font-size: 0.95rem; line-height: 1.95; color: #5a4e42; font-weight: 300; padding: 1.5rem 0 1.2rem; }
-    .dia-prayer-label { font-size: 0.68rem; letter-spacing: 0.25em; text-transform: uppercase; color: #b89a6a; margin-bottom: 0.8rem; display: block; }
-    .dia-prayer {
-      font-family: 'Cormorant Garamond', serif; font-size: 1.05rem; font-style: italic;
-      line-height: 2; color: #2c2c2c; font-weight: 300;
-      border-left: 2px solid #e0d8cc; padding-left: 1.5rem;
+    .day-panel-box h3 {
+      font-family: 'Playfair Display', serif; font-size: 1.7rem;
+      font-weight: 700; color: var(--plum); margin-bottom: 0.3rem;
     }
-    .dia-prayer p + p { margin-top: 0.8rem; }
+    .day-panel-box .day-sub {
+      font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 2rem;
+    }
+    .day-medit {
+      font-size: 0.95rem; line-height: 2; color: var(--muted); margin-bottom: 2.5rem;
+      padding-bottom: 2.5rem; border-bottom: 1px solid var(--border);
+    }
+    .day-prayer-label {
+      font-size: 0.62rem; letter-spacing: 0.28em; text-transform: uppercase;
+      color: var(--violet); font-weight: 600; margin-bottom: 1rem; display: block;
+    }
+    .day-prayer-text {
+      font-family: 'Playfair Display', serif; font-size: 1.1rem; font-style: italic;
+      line-height: 2.1; color: var(--plum); font-weight: 400;
+    }
+    .day-prayer-text p + p { margin-top: 0.9rem; }
 
     /* ── TESTEMUNHOS ── */
-    #testemunhos { background: #1a1209; padding: 6rem 2rem; }
-    .test-inner { max-width: 1000px; margin: 0 auto; }
-    .test-inner > .section-label { color: #b89a6a; text-align: center; }
-    .test-inner > h2 {
-      font-family: 'Cormorant Garamond', serif; font-size: clamp(1.8rem, 3vw, 2.6rem);
-      font-weight: 300; color: #f5f0e8; margin-bottom: 3rem; text-align: center;
+    #testemunhos { background: var(--plum); padding: 8rem 2rem; }
+    .test-wrap { max-width: 900px; margin: 0 auto; }
+    .pull-list { display: flex; flex-direction: column; gap: 4rem; margin-top: 5rem; }
+    .pull-item { display: grid; grid-template-columns: 100px 1fr; gap: 2.5rem; align-items: start; }
+    .pull-item:nth-child(even) { grid-template-columns: 1fr 100px; }
+    .pull-item:nth-child(even) .pull-q { order: 1; text-align: right; }
+    .pull-item:nth-child(even) .pull-mark-col { order: 2; text-align: left; }
+    .pull-mark-col {
+      font-family: 'Playfair Display', serif; font-size: 8rem;
+      line-height: 0.75; color: rgba(167,139,250,0.25); font-style: italic; font-weight: 700;
     }
-    .test-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
-    .test-card { background: #221609; border: 1px solid rgba(255,255,255,0.06); padding: 2.4rem 2rem; }
-    .test-stars { color: #b89a6a; font-size: 0.9rem; letter-spacing: 0.2rem; margin-bottom: 1.2rem; }
-    .test-card blockquote {
-      font-family: 'Cormorant Garamond', serif; font-size: 1.05rem; font-style: italic;
-      font-weight: 300; color: rgba(245,240,232,0.85); line-height: 1.85; margin-bottom: 1.5rem;
+    .pull-q blockquote {
+      font-family: 'Playfair Display', serif; font-size: 1.18rem; font-style: italic;
+      color: rgba(255,255,255,0.86); line-height: 1.85; margin-bottom: 1.3rem; font-weight: 400;
     }
-    .test-author { display: flex; align-items: center; gap: 0.8rem; }
-    .test-avatar {
-      width: 36px; height: 36px; border-radius: 50%;
-      background: rgba(184,154,106,0.2); border: 1px solid rgba(184,154,106,0.3);
+    .pull-author { display: flex; align-items: center; gap: 0.8rem; }
+    .pull-item:nth-child(even) .pull-author { justify-content: flex-end; }
+    .pull-av {
+      width: 38px; height: 38px; border-radius: 50%;
+      background: rgba(167,139,250,0.15); border: 2px solid rgba(167,139,250,0.25);
       display: flex; align-items: center; justify-content: center;
-      font-family: 'Cormorant Garamond', serif; font-size: 1rem; color: #b89a6a;
+      font-family: 'Playfair Display', serif; font-size: 1rem; color: var(--lavender); font-weight: 700;
     }
-    .test-name { font-size: 0.82rem; font-weight: 700; color: #f5f0e8; margin-bottom: 0.1rem; }
-    .test-local { font-size: 0.73rem; color: rgba(245,240,232,0.4); }
+    .pull-name { font-size: 0.82rem; font-weight: 600; color: rgba(255,255,255,0.9); }
+    .pull-local { font-size: 0.7rem; color: rgba(255,255,255,0.35); }
 
-    /* ── MAGNIFICAT ── */
-    #magnificat { max-width: 780px; margin: 0 auto; padding: 6rem 2rem; text-align: center; }
-    #magnificat h2 {
-      font-family: 'Cormorant Garamond', serif; font-size: clamp(1.8rem, 3vw, 2.6rem);
-      font-weight: 300; color: #1a1209; margin-bottom: 0.6rem;
+    /* ── PROMESSAS ── */
+    #magnificat { padding: 8rem 2rem; }
+    .prom-wrap { max-width: 1000px; margin: 0 auto; }
+    .prom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 4rem; }
+    .prom-item {
+      display: flex; gap: 1.4rem; align-items: flex-start;
+      padding: 1.8rem; border-radius: 18px;
+      background: var(--blush); border: 1px solid var(--border);
     }
-    #magnificat .sub { font-size: 0.9rem; color: #7a6a5a; font-weight: 300; margin-bottom: 2.5rem; }
-    .magnificat-text {
-      font-family: 'Cormorant Garamond', serif; font-size: 1.15rem;
-      font-style: italic; font-weight: 300; line-height: 2.2;
-      color: #3b2310; text-align: left;
-      border-top: 1px solid #e0d8cc; border-bottom: 1px solid #e0d8cc;
-      padding: 2.5rem 1rem;
+    .prom-n {
+      font-family: 'Playfair Display', serif; font-size: 2rem;
+      color: #a08ccc; font-weight: 700; line-height: 1; flex-shrink: 0; width: 2.2rem; text-align: right;
     }
-    .magnificat-text p + p { margin-top: 1rem; }
-    .magnificat-ref { font-size: 0.75rem; color: #b89a6a; letter-spacing: 0.18em; text-transform: uppercase; margin-top: 1.5rem; display: block; }
+    .prom-item p {
+      font-family: 'Playfair Display', serif; font-size: 0.9rem;
+      line-height: 1.75; color: var(--plum); font-style: italic;
+    }
+    .prom-ref { text-align: center; margin-top: 3rem; font-size: 0.7rem; color: var(--muted); letter-spacing: 0.18em; text-transform: uppercase; }
 
     /* ── CONSAGRAÇÃO ── */
-    #consagracao { background: #faf9f7; border-top: 1px solid #f0ede8; padding: 6rem 2rem; }
-    .cons-inner { max-width: 820px; margin: 0 auto; text-align: center; }
-    .cons-inner h2 {
-      font-family: 'Cormorant Garamond', serif; font-size: clamp(1.8rem, 3vw, 2.6rem);
-      font-weight: 300; color: #1a1209; margin-bottom: 0.6rem;
+    #consagracao { background: var(--blush); padding: 8rem 2rem; }
+    .cons-wrap {
+      max-width: 1100px; margin: 0 auto;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 6rem; align-items: center;
     }
-    .cons-inner .sub { font-size: 0.95rem; color: #7a6a5a; font-weight: 300; margin-bottom: 2.5rem; line-height: 1.8; }
-    .cons-prayer {
-      background: #ffffff; border: 1px solid #e8e2d8;
-      padding: 3rem 3.5rem; text-align: left;
-      font-family: 'Cormorant Garamond', serif; font-size: 1.08rem;
-      line-height: 2.1; color: #2c2c2c; font-weight: 300; font-style: italic;
-      position: relative;
+    .cons-left .tag {
+      font-size: 0.65rem; letter-spacing: 0.28em; text-transform: uppercase;
+      color: var(--violet); display: block; margin-bottom: 1.2rem; font-weight: 600;
     }
-    .cons-prayer::before {
-      content: '"'; position: absolute; top: 1rem; left: 2rem;
-      font-size: 5rem; color: #f0e8dc;
-      font-family: 'Cormorant Garamond', serif; line-height: 1;
+    .cons-left h2 {
+      font-family: 'Playfair Display', serif; font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 400; color: var(--plum); margin-bottom: 1.5rem; line-height: 1.2;
     }
-    .cons-prayer p { position: relative; z-index: 1; }
-    .cons-prayer p + p { margin-top: 1rem; }
+    .cons-left p { font-size: 0.95rem; color: var(--muted); line-height: 1.9; }
+    .cons-deco {
+      width: 100%; aspect-ratio: 1; border-radius: 28px;
+      background: linear-gradient(140deg, var(--plum), #5b21b6);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Playfair Display', serif; font-size: 9rem;
+      color: rgba(167,139,250,0.15); font-style: italic; font-weight: 700;
+      box-shadow: 0 32px 80px rgba(30,10,53,0.2);
+      position: relative; overflow: hidden;
+    }
+    .cons-deco::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(circle at 50% 40%, rgba(167,139,250,0.18) 0%, transparent 70%);
+    }
+    .cons-right {
+      font-family: 'Playfair Display', serif; font-size: 1.1rem;
+      font-style: italic; font-weight: 400; line-height: 2.1; color: var(--plum);
+      background: white; border-radius: 24px; padding: 3.5rem;
+      border: 1px solid var(--border);
+      box-shadow: 0 8px 40px rgba(109,40,217,0.07);
+    }
+    .cons-right p + p { margin-top: 1rem; }
+    .cons-note {
+      margin-top: 2rem; font-style: normal; font-family: 'Inter', sans-serif;
+      font-size: 0.83rem; color: var(--muted); line-height: 1.85;
+      padding-top: 1.5rem; border-top: 1px solid var(--border);
+    }
 
     /* ── FOOTER ── */
-    footer { background: #1a1209; color: #f5f0e8; padding: 4rem 2rem; }
-    .footer-inner {
-      max-width: 860px; margin: 0 auto;
-      display: flex; flex-direction: column; align-items: center; gap: 2rem;
+    footer { background: var(--plum); padding: 5rem 2rem; text-align: center; }
+    .foot-logo {
+      font-family: 'Playfair Display', serif; font-size: 1.7rem;
+      font-weight: 400; color: white; margin-bottom: 1.2rem;
     }
-    .footer-logo { font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; font-weight: 300; letter-spacing: 0.06em; }
-    .footer-logo em { font-style: italic; color: #b89a6a; }
-    .footer-info { display: flex; flex-direction: column; align-items: center; gap: 0.6rem; }
-    .footer-info-row { display: flex; align-items: center; gap: 0.7rem; font-size: 0.87rem; color: rgba(245,240,232,0.65); font-weight: 300; }
-    .footer-info-row .dot { width: 4px; height: 4px; border-radius: 50%; background: #b89a6a; display: inline-block; flex-shrink: 0; }
-    .footer-info-row strong { font-weight: 400; color: #b89a6a; font-family: 'Cormorant Garamond', serif; font-size: 0.95rem; }
-    .footer-info-row a { color: rgba(245,240,232,0.65); text-decoration: none; transition: color 0.3s; }
-    .footer-info-row a:hover { color: #b89a6a; }
-    .footer-divider { width: 60px; height: 1px; background: rgba(184,154,106,0.4); }
-    .footer-copy { font-size: 0.72rem; color: rgba(245,240,232,0.28); letter-spacing: 0.1em; }
+    .foot-logo em { font-style: italic; color: var(--lavender); }
+    .foot-hr { width: 60px; height: 1px; background: rgba(167,139,250,0.3); margin: 1.5rem auto; }
+    .foot-info { font-size: 0.85rem; color: rgba(255,255,255,0.42); margin-bottom: 0.4rem; }
+    .foot-info strong { color: var(--lavender); font-weight: 400; }
+    .foot-copy { font-size: 0.68rem; color: rgba(255,255,255,0.18); letter-spacing: 0.1em; margin-top: 2rem; }
+
+    /* ── REVEAL ── */
+    .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.65s ease, transform 0.65s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
 
     /* ── RESPONSIVE ── */
-    @media (max-width: 800px) {
-      .historia-grid { grid-template-columns: 1fr; }
-      .imagem-layout { grid-template-columns: 1fr; }
-      .imagem-foto { max-width: 320px; margin: 0 auto; }
-      .nos-grid { grid-template-columns: 1fr 1fr; }
-      .prayer-box { padding: 2rem 1.5rem; }
-      .dia-header { padding: 1.1rem 1.2rem; }
-      .dia-body { padding: 0 1.2rem 1.6rem; }
-      .cons-prayer { padding: 2rem 1.5rem; }
-      .cons-prayer::before { display: none; }
+    @media (max-width: 860px) {
+      #intro { grid-template-columns: 1fr; gap: 3rem; padding: 6rem 1.5rem; }
+      .img-card { grid-template-columns: 1fr; }
+      .img-card img { height: 240px; object-position: top; }
+      .intencoes-grid { grid-template-columns: 1fr 1fr; }
+      .cons-wrap { grid-template-columns: 1fr; }
+      .cons-deco { display: none; }
+      .pull-item, .pull-item:nth-child(even) { grid-template-columns: 1fr; }
+      .pull-item:nth-child(even) .pull-q { order: 1; text-align: left; }
+      .pull-mark-col { display: none; }
+      .prom-grid { grid-template-columns: 1fr; }
+      .hero-nav { display: none; }
+      .day-panel-box { padding: 2rem 1.5rem; }
     }
-    @media (max-width: 500px) {
-      .nos-grid { grid-template-columns: 1fr; }
+    @media (max-width: 540px) {
+      .intencoes-grid { grid-template-columns: 1fr; }
+      .step-row { grid-template-columns: 70px 1fr; gap: 1.5rem; }
+      .step-n { font-size: 3.8rem; }
     }
   </style>
 </head>
 <body>
 
-<!-- HEADER -->
-<header>
-  <div class="header-eyebrow">Devoção Mariana</div>
-  <h1>Nossa Senhora<br><em>Desatadora de Nós</em></h1>
-  <p class="header-sub">Uma novena de nove dias de oração, entrega e confiança na intercessão de Maria para desatar os nós da nossa vida.</p>
-  <div class="ornament">✦ ✦ ✦</div>
-</header>
-
-<!-- NAV -->
-<nav>
+<!-- NAV FLUTUANTE -->
+<nav class="hero-nav">
   <a href="#intro">Apresentação</a>
   <a href="#historia">História</a>
   <a href="#a-imagem">A Imagem</a>
-  <a href="#nos">Os Nós</a>
-  <a href="#como-rezar">Como rezar</a>
+  <a href="#nos">Intenções</a>
   <a href="#novena">9 Dias</a>
   <a href="#testemunhos">Testemunhos</a>
   <a href="#consagracao">Consagração</a>
 </nav>
 
-<!-- INTRO -->
-<section class="intro" id="intro">
-  <span class="section-label">Apresentação</span>
-  <h2>A devoção que desata<br>os nós da vida</h2>
-  <p>Nossa Senhora Desatadora de Nós é uma devoção que se originou na Alemanha no século XVIII e se difundiu pelo mundo inteiro graças ao Papa Francisco. A imagem representa Maria desfazendo, com suas mãos, os nós de uma fita branca — símbolo dos problemas, pecados, sofrimentos e vínculos que nos prendem.</p>
-  <div class="divider"><span class="divider-icon">✦</span></div>
-  <p>Esta novena é rezada durante <strong>nove dias consecutivos</strong>. Cada dia contempla um aspecto diferente da nossa vida e invoca a intercessão de Maria para que, pela graça de Deus, os nós sejam desatados um a um.</p>
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-deco">♥</div>
+  <div class="hero-badge">Devoção Eucarística</div>
+  <h1>Sagrado Coração<em>de Jesus</em></h1>
+  <p class="hero-sub">Uma oração de nove dias de amor, reparação e confiança no Coração infinitamente misericordioso de Jesus Cristo.</p>
+  <div class="hero-scroll">
+    <div class="hero-scroll-line"></div>
+    Rolar
+  </div>
 </section>
 
-<!-- HISTÓRIA -->
+<!-- INTRO SPLIT -->
+<section id="intro">
+  <div class="intro-left reveal">
+    "O Coração que ama sem medida — e que deseja ser amado de volta."
+  </div>
+  <div class="intro-right reveal">
+    <span class="tag">Apresentação</span>
+    <p>O Sagrado Coração de Jesus é uma das devoções mais amadas da Igreja Católica. Por meio de aparições a Santa Margarida Maria Alacoque, no século XVII, Jesus revelou seu Coração inflamado de amor — cercado de espinhos e encimado por uma cruz — como símbolo do amor doado até o fim pela humanidade.</p>
+    <p>Esta oração é rezada durante <strong>nove dias consecutivos</strong>. Cada dia contempla um aspecto do amor de Jesus e nos convida a abrir o coração para receber as graças que Ele deseja conceder a todos que confiam nele.</p>
+  </div>
+</section>
+
+<!-- HISTÓRIA TIMELINE -->
 <section id="historia">
-  <div class="historia-inner">
-    <span class="section-label">Origem e história</span>
-    <h2>Como nasceu esta devoção</h2>
-    <div class="historia-grid">
-      <div class="historia-card reveal">
-        <div class="historia-card-num">1700</div>
-        <h4>A pintura de Augsburgo</h4>
-        <p>A imagem foi pintada pelo artista Johann Georg Melchior Schmidtner por encomenda de Hieronymus Ambrosius Langenmantel, neto de um casal cujo casamento havia sido salvo pela intercessão de Nossa Senhora. A pintura ficou na Igreja de São Pedro am Perlach, em Augsburgo, Alemanha.</p>
+  <div class="historia-wrap">
+    <div class="section-top reveal">
+      <span class="tag">Origem e história</span>
+      <h2>Como nasceu esta devoção</h2>
+    </div>
+    <div class="timeline">
+      <div class="tl-item reveal">
+        <div class="tl-dot"></div>
+        <div class="tl-year">1673</div>
+        <h3>As Aparições em Paray-le-Monial</h3>
+        <p>Jesus apareceu a Santa Margarida Maria Alacoque em Paray-le-Monial, França, mostrando-lhe seu Coração cercado de chamas e espinhos, encimado por uma cruz. Pediu que a devoção ao seu Sagrado Coração fosse difundida por todo o mundo e que se reparasse pelos pecados da humanidade.</p>
       </div>
-      <div class="historia-card reveal">
-        <div class="historia-card-num">1980</div>
-        <h4>O encontro do Papa Francisco</h4>
-        <p>Em 1980, o jovem padre Jorge Mario Bergoglio estudava em Augsburgo. Deparou-se com a imagem original e ficou profundamente tocado. Trouxe uma reprodução para a Argentina, onde a devoção se espalhou rapidamente, chegando ao Brasil e ao mundo inteiro.</p>
+      <div class="tl-item reveal">
+        <div class="tl-dot"></div>
+        <div class="tl-year">1765</div>
+        <h3>A Aprovação da Santa Sé</h3>
+        <p>O Papa Clemente XIII aprovou a festa do Sagrado Coração para a Polônia e para a Archiconfraria Romana, dando à devoção reconhecimento oficial. Foi um marco decisivo para a sua difusão em toda a Igreja.</p>
       </div>
-      <div class="historia-card reveal">
-        <div class="historia-card-num">2013</div>
-        <h4>A devoção vai ao mundo</h4>
-        <p>Com a eleição de Bergoglio como Papa Francisco, a devoção se tornou mundial. Milhões de fiéis passaram a rezar a novena, levando aos pés de Maria seus problemas e sofrimentos, e relatando graças e milagres recebidos.</p>
+      <div class="tl-item reveal">
+        <div class="tl-dot"></div>
+        <div class="tl-year">1856</div>
+        <h3>A Igreja Universal</h3>
+        <p>O Papa Pio IX estendeu a festa do Sagrado Coração a toda a Igreja Universal, tornando-a uma das solenidades mais importantes do calendário litúrgico. Em 1899, o Papa Leão XIII consagrou toda a humanidade ao Sagrado Coração.</p>
       </div>
-      <div class="historia-card reveal">
-        <div class="historia-card-num">Hoje</div>
-        <h4>Uma devoção para todos</h4>
-        <p>Independente de nação, língua ou condição social, milhares de fiéis rezam diariamente confiando seus nós à intercessão de Maria — e relatam graças poderosas em suas vidas.</p>
+      <div class="tl-item reveal">
+        <div class="tl-dot"></div>
+        <div class="tl-year">Hoje</div>
+        <h3>Uma Devoção Viva</h3>
+        <p>Milhões de fiéis em todo o mundo se consagram ao Sagrado Coração, encontrando nele fonte de amor, misericórdia e paz. A devoção atravessa séculos e continua viva e transformadora em cada coração que se abre a ela.</p>
       </div>
     </div>
-    <div class="historia-quote reveal">
-      <div class="divider"><span class="divider-icon">✦</span></div>
-      <blockquote>"Ela desata os nós de nossa vida com a paciência e a ternura de uma mãe."</blockquote>
-      <cite>— Papa Francisco</cite>
+    <div class="tl-quote reveal">
+      <blockquote>"Eis o Coração que tanto amou os homens e que, em troca, da maior parte deles, não recebe senão ingratidão."</blockquote>
+      <cite>— Jesus a Santa Margarida Maria Alacoque</cite>
     </div>
   </div>
 </section>
 
 <!-- A IMAGEM -->
 <section id="a-imagem">
-  <span class="section-label">Iconografia</span>
-  <h2>A Pintura Sagrada e seus Elementos</h2>
-  <div class="imagem-layout">
-
-    <div class="imagem-foto reveal">
-      <img
-        src="https://commons.wikimedia.org/wiki/Special:FilePath/MaryUntier.jpg"
-        alt="Nossa Senhora Desatadora de Nós — Johann Georg Melchior Schmidtner, c. 1700"
-      >
-      <div class="imagem-foto-label">
-        Johann Georg Melchior Schmidtner, c. 1700<br>
-        St. Peter am Perlach · Augsburgo, Alemanha
-      </div>
+  <div class="imagem-wrap">
+    <div class="section-top reveal">
+      <span class="tag">Iconografia</span>
+      <h2 class="dark">A Imagem Sagrada e seus Elementos</h2>
     </div>
-
-    <div class="imagem-elementos">
-      <div class="elemento-item reveal">
-        <div class="elemento-icon">👑</div>
-        <div>
-          <h4>A Coroa de Estrelas</h4>
-          <p>Maria é representada coroada com doze estrelas, símbolo de sua realeza espiritual como Rainha do Céu, conforme o Apocalipse 12,1.</p>
-        </div>
-      </div>
-      <div class="elemento-item reveal">
-        <div class="elemento-icon">🎀</div>
-        <div>
-          <h4>A Fita com Nós</h4>
-          <p>Uma fita branca com nós é entregue por um anjo às mãos de Maria e devolvida lisa ao outro anjo abaixo. Os nós representam os problemas da humanidade; ao passar pelas mãos de Maria, eles são desatados.</p>
-        </div>
-      </div>
-      <div class="elemento-item reveal">
-        <div class="elemento-icon">🕊️</div>
-        <div>
-          <h4>A Pomba do Espírito Santo</h4>
-          <p>Acima da cabeça de Maria paira a pomba branca — símbolo do Espírito Santo, que opera os milagres por intermédio de sua intercessão.</p>
-        </div>
-      </div>
-      <div class="elemento-item reveal">
-        <div class="elemento-icon">🌙</div>
-        <div>
-          <h4>A Lua sob seus Pés</h4>
-          <p>Maria pisa sobre a lua crescente, indicando que está acima das coisas temporais. É desse lugar eterno que intercede por nós.</p>
-        </div>
-      </div>
-      <div class="elemento-item reveal">
-        <div class="elemento-icon">😇</div>
-        <div>
-          <h4>Os Dois Anjos</h4>
-          <p>O anjo de cima entrega os nós e o de baixo recebe a fita já desatada — os pedidos que chegam a Maria e as graças que retornam ao mundo.</p>
+    <div class="img-card reveal">
+      <img
+        src="https://upload.wikimedia.org/wikipedia/commons/d/df/Sagrado_Cora%C3%A7%C3%A3o_de_Jesus_na_Catedral_do_Rio_de_Janeiro.JPG"
+        alt="Sagrado Coração de Jesus"
+      >
+      <div class="img-card-body">
+        <span class="tag">Arte Sacra Tradicional · Devoção ao Sagrado Coração de Jesus</span>
+        <h2>Os elementos da imagem</h2>
+        <div class="elem-list">
+          <div class="elem-row">
+            <div class="elem-ico">🔥</div>
+            <div>
+              <h4>As Chamas</h4>
+              <p>Representam o amor ardente de Jesus pela humanidade — um amor que nunca se apaga.</p>
+            </div>
+          </div>
+          <div class="elem-row">
+            <div class="elem-ico">👑</div>
+            <div>
+              <h4>A Coroa de Espinhos</h4>
+              <p>Os pecados dos homens que ferem o Coração de Jesus — e o amor que sofreu sem abandonar.</p>
+            </div>
+          </div>
+          <div class="elem-row">
+            <div class="elem-ico">✝️</div>
+            <div>
+              <h4>A Cruz</h4>
+              <p>O amor de Jesus coroado pelo sacrifício, onde o Coração foi aberto para todos.</p>
+            </div>
+          </div>
+          <div class="elem-row">
+            <div class="elem-ico">💧</div>
+            <div>
+              <h4>A Ferida do Lado</h4>
+              <p>De onde brotaram sangue e água — o amor derramado até a última gota.</p>
+            </div>
+          </div>
+          <div class="elem-row">
+            <div class="elem-ico">✨</div>
+            <div>
+              <h4>Os Raios de Luz</h4>
+              <p>As graças que Jesus deseja conceder a todos que confiam e honram seu Sagrado Coração.</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- TIPOS DE NÓS -->
+<!-- INTENÇÕES -->
 <section id="nos">
-  <div class="nos-inner">
-    <span class="section-label">Os nós mais comuns</span>
-    <h2>Que nós você carrega?</h2>
-    <p class="nos-sub">Maria intercede por qualquer tipo de nó. Confie a ela as situações que parecem sem saída e os problemas que parecem impossíveis de resolver.</p>
-    <div class="nos-grid">
-      <div class="no-card reveal">
-        <div class="no-icon">💔</div>
-        <h4>Relacionamentos e Família</h4>
-        <p>Brigas, afastamentos, casamentos em crise, filhos perdidos. Maria entende cada dor familiar.</p>
-        <span class="no-tag">Relações</span>
+  <div class="nos-wrap">
+    <div class="section-top reveal">
+      <span class="tag">Intenções frequentes</span>
+      <h2 class="dark">Para que rezar ao Sagrado Coração?</h2>
+      <p style="font-size:0.95rem;color:var(--muted);max-width:500px;margin:1rem auto 0;line-height:1.9;">Jesus acolhe toda intenção com misericórdia. Traga ao seu Coração as situações mais difíceis da sua vida — nada é impossível para Ele.</p>
+    </div>
+    <div class="intencoes-grid">
+      <div class="int-card reveal">
+        <div class="int-icon">🙏</div>
+        <h4>Conversão de Pecadores</h4>
+        <p>O Sagrado Coração é o refúgio dos pecadores. Jesus veio para salvar quem está perdido — e promete não rejeitar nenhum coração que se aproxime com humildade.</p>
+        <span class="int-tag">Conversão</span>
       </div>
-      <div class="no-card reveal">
-        <div class="no-icon">💸</div>
-        <h4>Dificuldades Financeiras</h4>
-        <p>Dívidas, desemprego, negócios estagnados. Peça pela abertura de caminhos que parecem fechados.</p>
-        <span class="no-tag">Finanças</span>
+      <div class="int-card reveal">
+        <div class="int-icon">💑</div>
+        <h4>Paz nas Famílias</h4>
+        <p>Jesus prometeu trazer paz às famílias consagradas ao seu Coração. A paz que o mundo não pode dar — mas que o Coração de Cristo oferece livremente.</p>
+        <span class="int-tag">Família</span>
       </div>
-      <div class="no-card reveal">
-        <div class="no-icon">🏥</div>
-        <h4>Saúde e Enfermidade</h4>
-        <p>Diagnósticos difíceis, doenças crônicas, saúde mental fragilizada. Nossa Senhora intercede junto ao Médico dos médicos.</p>
-        <span class="no-tag">Saúde</span>
+      <div class="int-card reveal">
+        <div class="int-icon">🏥</div>
+        <h4>Saúde e Consolo</h4>
+        <p>No sofrimento físico ou espiritual, o Coração de Jesus é fonte de força e alívio sobrenatural. Ele disse: "Vinde a mim os que estais cansados."</p>
+        <span class="int-tag">Saúde</span>
       </div>
-      <div class="no-card reveal">
-        <div class="no-icon">⛓️</div>
-        <h4>Vícios e Dependências</h4>
-        <p>Álcool, drogas, jogos, comportamentos compulsivos. A graça de Deus é maior que qualquer corrente.</p>
-        <span class="no-tag">Libertação</span>
+      <div class="int-card reveal">
+        <div class="int-icon">⛓️</div>
+        <h4>Libertação de Vícios</h4>
+        <p>A graça que emana do Sagrado Coração é capaz de romper qualquer corrente e restaurar a dignidade perdida. Nenhum vício é mais forte que o amor de Cristo.</p>
+        <span class="int-tag">Libertação</span>
       </div>
-      <div class="no-card reveal">
-        <div class="no-icon">😔</div>
-        <h4>Tristeza e Depressão</h4>
-        <p>Angústia, vazio interior, falta de esperança. Maria, a Mãe das Dores, quer levar ao Filho cada coração partido.</p>
-        <span class="no-tag">Saúde mental</span>
+      <div class="int-card reveal">
+        <div class="int-icon">🕊️</div>
+        <h4>Paz Interior</h4>
+        <p>O Coração de Jesus é o descanso que o mundo não pode dar. Para os corações angustiados, ansiosos e sem esperança, Ele é porto seguro.</p>
+        <span class="int-tag">Consolo</span>
       </div>
-      <div class="no-card reveal">
-        <div class="no-icon">🌑</div>
-        <h4>Medos e Bloqueios</h4>
-        <p>Medo de falhar, de ser rejeitado, do futuro. Maria nos convida a confiar plenamente em Deus.</p>
-        <span class="no-tag">Medo</span>
+      <div class="int-card reveal">
+        <div class="int-icon">🌟</div>
+        <h4>Perseverança na Fé</h4>
+        <p>Para os que combatem o bom combate da fé, o Sagrado Coração é fortaleza e abrigo. Jesus prometeu o dom da perseverança aos que honrarem seu Coração.</p>
+        <span class="int-tag">Fé</span>
       </div>
     </div>
   </div>
@@ -515,29 +593,37 @@
 
 <!-- COMO REZAR -->
 <section id="como-rezar">
-  <div class="como-inner">
-    <span class="section-label">Orientações práticas</span>
-    <h2>Como rezar a Novena</h2>
-    <div class="steps-row">
-      <div class="step-card reveal">
-        <div class="step-num">01</div>
+  <div class="section-top reveal">
+    <span class="tag" style="color:var(--violet);">Orientações práticas</span>
+    <h2 class="dark">Como rezar a Oração</h2>
+  </div>
+  <div class="step-list">
+    <div class="step-row reveal">
+      <div class="step-n">01</div>
+      <div class="step-text">
         <h4>Escolha um horário fixo</h4>
         <p>Reserve um momento tranquilo, de preferência sempre no mesmo horário, durante os nove dias consecutivos.</p>
       </div>
-      <div class="step-card reveal">
-        <div class="step-num">02</div>
-        <h4>Crie um ambiente sagrado</h4>
-        <p>Acenda uma vela, coloque uma imagem de Nossa Senhora e afaste distrações.</p>
+    </div>
+    <div class="step-row reveal">
+      <div class="step-n">02</div>
+      <div class="step-text">
+        <h4>Crie um ambiente de oração</h4>
+        <p>Acenda uma vela, coloque uma imagem do Sagrado Coração e afaste distrações. O silêncio dispõe o coração para ouvir a Deus.</p>
       </div>
-      <div class="step-card reveal">
-        <div class="step-num">03</div>
+    </div>
+    <div class="step-row reveal">
+      <div class="step-n">03</div>
+      <div class="step-text">
         <h4>Leia a meditação do dia</h4>
-        <p>Cada dia traz uma reflexão. Leia com calma, em silêncio, antes de orar.</p>
+        <p>Cada dia traz uma reflexão sobre o amor de Jesus. Leia com calma, em silêncio, antes de orar.</p>
       </div>
-      <div class="step-card reveal">
-        <div class="step-num">04</div>
-        <h4>Reze com sinceridade</h4>
-        <p>Apresente seus nós a Maria com verdade e confiança. Deus conhece cada detalhe da sua vida.</p>
+    </div>
+    <div class="step-row reveal">
+      <div class="step-n">04</div>
+      <div class="step-text">
+        <h4>Reze com o coração aberto</h4>
+        <p>Apresente suas intenções a Jesus com confiança plena. Seu Coração está aberto para receber cada um de nós exatamente como somos.</p>
       </div>
     </div>
   </div>
@@ -545,154 +631,161 @@
 
 <!-- ORAÇÃO INICIAL -->
 <section id="oracao-inicial">
-  <div>
-    <span class="section-label">Para todos os dias</span>
+  <div class="oracao-inner">
+    <span class="tag">Para todos os dias</span>
     <h2>Oração Inicial</h2>
-    <p class="sub">Reze este trecho antes de cada um dos nove dias da novena.</p>
-    <div class="prayer-box reveal">
-      <p>Maria, cheia de graça, Rainha do céu e da terra, eu me refugio hoje sob o seu manto de proteção.</p>
-      <p>Não desdenhe os meus rogos, livrai-me dos males que me afligem e intercedei por mim junto ao vosso Filho Jesus, meu único Salvador, que vive e reina com o Pai, na unidade do Espírito Santo, por todos os séculos dos séculos. Amém.</p>
-      <p>Bendita sois vós, ó Maria, cheia de graça. Nossa Senhora Desatadora de Nós, rogai por nós.</p>
+    <p class="sub">Reze este trecho antes de cada um dos nove dias de oração.</p>
+    <div class="prayer-text reveal">
+      <p>Ó Jesus, que dissestes: "Pedi e recebereis, buscai e encontrareis, batei e ser-vos-á aberto", eis-me prostrado a vossos pés para pedir uma graça que só de vós posso esperar e somente de vossa bondade posso obter.</p>
+      <div class="prayer-hr"></div>
+      <p>Eu creio que podeis me conceder o que peço; creio que quereis conceder-me, se o que peço me for útil para a salvação. Com toda humildade me submeto a vosso julgamento, que conhece o que nos convém mais do que nós mesmos.</p>
+      <div class="prayer-hr"></div>
+      <p>Sagrado Coração de Jesus, eu confio em Vós. Amém.</p>
     </div>
   </div>
 </section>
 
-<!-- NOVENA: 9 DIAS -->
+<!-- 9 DIAS COM TABS -->
 <section id="novena">
-  <span class="section-label">A Novena</span>
-  <h2>Os Nove Dias de Oração</h2>
+  <div class="section-top reveal">
+    <span class="tag" style="color:var(--violet);">Os Dias</span>
+    <h2 class="dark">Os Nove Dias de Oração</h2>
+  </div>
 
-  <div class="dia-item reveal">
-    <div class="dia-header" onclick="toggleDia(this)">
-      <div class="dia-header-left"><div class="dia-badge">I</div><div class="dia-title"><h3>Confiança e Entrega</h3><span>Primeiro Dia</span></div></div>
-      <div class="dia-toggle">+</div>
-    </div>
-    <div class="dia-body">
-      <p class="dia-meditacao">Neste primeiro dia somos convidados a reconhecer que não somos capazes de desatar sozinhos os nós da nossa vida. A confiança em Deus começa quando reconhecemos nossa limitação e nos entregamos com humildade. Maria nos ensina a dizer: <em>"Faça-se em mim segundo a Vossa palavra."</em></p>
-      <span class="dia-prayer-label">Oração do Primeiro Dia</span>
-      <div class="dia-prayer">
-        <p>Maria, Mãe de Deus e nossa Mãe, neste primeiro dia me ponho diante de vós com um coração confiante. Reconheço que há nós na minha vida que eu não consigo desatar sozinho: situações difíceis, relações feridas, preocupações que me pesam.</p>
-        <p>Coloco tudo em vossas mãos, sabendo que vós os levareis a Jesus. Que eu aprenda a confiar plenamente em Deus, mesmo quando não consigo ver a saída. Amém.</p>
+  <div class="day-tabs">
+    <button class="day-tab active" onclick="showDay(0)">I</button>
+    <button class="day-tab" onclick="showDay(1)">II</button>
+    <button class="day-tab" onclick="showDay(2)">III</button>
+    <button class="day-tab" onclick="showDay(3)">IV</button>
+    <button class="day-tab" onclick="showDay(4)">V</button>
+    <button class="day-tab" onclick="showDay(5)">VI</button>
+    <button class="day-tab" onclick="showDay(6)">VII</button>
+    <button class="day-tab" onclick="showDay(7)">VIII</button>
+    <button class="day-tab" onclick="showDay(8)">IX</button>
+  </div>
+
+  <div class="day-panel active" id="day-0">
+    <div class="day-panel-box">
+      <div class="day-big-num">I</div>
+      <h3>O Amor de Deus por Nós</h3>
+      <p class="day-sub">Primeiro Dia</p>
+      <p class="day-medit">Antes de qualquer pedido, somos convidados a contemplar o amor de Deus por nós. Um amor que não espera que sejamos perfeitos — que desceu à terra, habitou entre nós e entregou tudo na cruz. O primeiro passo é simplesmente abrir o coração para receber esse amor sem medir se somos dignos.</p>
+      <span class="day-prayer-label">Oração do Primeiro Dia</span>
+      <div class="day-prayer-text">
+        <p>Senhor Jesus, neste primeiro dia me ponho diante do vosso Sagrado Coração com o meu coração tal como ele é — ferido, cansado, cheio de dúvidas. Mas sei que vós me amais primeiro, antes de qualquer mérito meu.</p>
+        <p>Que eu aprenda a receber o vosso amor antes de pedir qualquer coisa. Que a contemplação do vosso Coração me transforme de dentro para fora e acenda em mim o desejo de vos amar como vós me amais. Amém.</p>
       </div>
     </div>
   </div>
 
-  <div class="dia-item reveal">
-    <div class="dia-header" onclick="toggleDia(this)">
-      <div class="dia-header-left"><div class="dia-badge">II</div><div class="dia-title"><h3>Os Nós que me Prendem</h3><span>Segundo Dia</span></div></div>
-      <div class="dia-toggle">+</div>
-    </div>
-    <div class="dia-body">
-      <p class="dia-meditacao">Somos convidados a identificar os nós que precisam ser desatados: vícios, mágoas, relacionamentos rompidos, dívidas, medos, traumas. Nomeá-los diante de Maria é um ato de coragem e de fé.</p>
-      <span class="dia-prayer-label">Oração do Segundo Dia</span>
-      <div class="dia-prayer">
-        <p>Nossa Senhora Desatadora de Nós, neste segundo dia apresento a vós os nós que reconheço na minha vida. Nomeio cada um deles no meu coração, sem vergonha, pois sei que sois uma Mãe misericordiosa.</p>
-        <p>Peço que vossas mãos cheias de graça se aproximem de cada um desses nós e os desfaçam. Que a luz de Deus penetre onde o medo fez escuridão. Amém.</p>
+  <div class="day-panel" id="day-1">
+    <div class="day-panel-box">
+      <div class="day-big-num">II</div>
+      <h3>Contrição e Perdão</h3>
+      <p class="day-sub">Segundo Dia</p>
+      <p class="day-medit">O Sagrado Coração é ferido pelos pecados dos homens — mas é também a fonte inesgotável do perdão. Hoje somos convidados ao arrependimento sincero, não por medo do castigo, mas por amor a Quem nos amou tanto e tão gratuitamente.</p>
+      <span class="day-prayer-label">Oração do Segundo Dia</span>
+      <div class="day-prayer-text">
+        <p>Jesus misericordioso, neste segundo dia me arrependo com sinceridade de todos os pecados que cometi e que feriram o vosso Sagrado Coração. Peço perdão não apenas pelas minhas faltas, mas pela ingratidão com que tantas vezes respondi ao vosso amor.</p>
+        <p>Lavai-me com o sangue que brotou do vosso lado. Restaurai em mim a pureza da consciência e a alegria de ser amado e perdoado por vós. Amém.</p>
       </div>
     </div>
   </div>
 
-  <div class="dia-item reveal">
-    <div class="dia-header" onclick="toggleDia(this)">
-      <div class="dia-header-left"><div class="dia-badge">III</div><div class="dia-title"><h3>Perdão e Reconciliação</h3><span>Terceiro Dia</span></div></div>
-      <div class="dia-toggle">+</div>
-    </div>
-    <div class="dia-body">
-      <p class="dia-meditacao">Muitos dos nós têm raiz em feridas não curadas e em falta de perdão. Perdoar não é esquecer, nem concordar com o que foi feito. É libertar a nós mesmos do peso do ressentimento.</p>
-      <span class="dia-prayer-label">Oração do Terceiro Dia</span>
-      <div class="dia-prayer">
-        <p>Maria, minha Mãe, neste terceiro dia peço a graça do perdão. Há pessoas que me feriram e que ainda carrego no coração como peso. Há também situações em que fui eu o causador da dor.</p>
-        <p>Intercedei por mim para que meu coração se abra à reconciliação. Que o perdão desfaça o nó do rancor, e que a paz de Cristo reine nas minhas relações. Amém.</p>
+  <div class="day-panel" id="day-2">
+    <div class="day-panel-box">
+      <div class="day-big-num">III</div>
+      <h3>Reparação ao Sagrado Coração</h3>
+      <p class="day-sub">Terceiro Dia</p>
+      <p class="day-medit">Jesus pediu a Santa Margarida que os fiéis fizessem reparação pelas ofensas que seu Coração recebe. Reparar é um ato de amor — é escolher ficar ao lado de Jesus quando o mundo se afasta. Hoje fazemos isso com nossa oração e nossa presença.</p>
+      <span class="day-prayer-label">Oração do Terceiro Dia</span>
+      <div class="day-prayer-text">
+        <p>Ó Jesus, neste terceiro dia me uno a todos os que, em todo o mundo, adoram e amam o vosso Sagrado Coração. Ofereço-vos este tempo de oração em reparação pelas ofensas que vosso Coração recebe a cada dia.</p>
+        <p>Que o meu amor, ainda que pequeno e imperfeito, seja um consolo para o vosso Coração. Que a minha vida seja uma resposta de amor ao amor infinito que vós me destes. Amém.</p>
       </div>
     </div>
   </div>
 
-  <div class="dia-item reveal">
-    <div class="dia-header" onclick="toggleDia(this)">
-      <div class="dia-header-left"><div class="dia-badge">IV</div><div class="dia-title"><h3>Cura Interior</h3><span>Quarto Dia</span></div></div>
-      <div class="dia-toggle">+</div>
-    </div>
-    <div class="dia-body">
-      <p class="dia-meditacao">Deus deseja nos ver íntegros: em alma, mente e corpo. A cura interior é um processo lento, mas possível pela graça divina. Hoje abrimos nossos ferimentos mais profundos à luz de Maria.</p>
-      <span class="dia-prayer-label">Oração do Quarto Dia</span>
-      <div class="dia-prayer">
-        <p>Nossa Senhora, neste quarto dia trago-vos as feridas mais profundas do meu interior — aquelas que ninguém vê, mas que eu sinto todos os dias. Feridas de abandono, rejeição, solidão, fracasso.</p>
-        <p>Que vossas mãos maternais toquem com suavidade cada ferida e que a graça de Deus as cure de dentro para fora. Que eu me levante renovado, sabendo que sou amado por Deus incondicionalmente. Amém.</p>
+  <div class="day-panel" id="day-3">
+    <div class="day-panel-box">
+      <div class="day-big-num">IV</div>
+      <h3>As Promessas do Sagrado Coração</h3>
+      <p class="day-sub">Quarto Dia</p>
+      <p class="day-medit">Jesus fez doze promessas àqueles que honrarem seu Sagrado Coração. Entre elas: paz nas famílias, consolo nos sofrimentos, fervor para os tépidos e a graça da perseverança final. Hoje meditamos nessas promessas e as recebemos com fé.</p>
+      <span class="day-prayer-label">Oração do Quarto Dia</span>
+      <div class="day-prayer-text">
+        <p>Sagrado Coração de Jesus, neste quarto dia me ponho diante das vossas promessas. Creio com fé que vós as cumprireis em mim, não por mérito meu, mas por vossa bondade infinita e fidelidade eterna.</p>
+        <p>Que as promessas do vosso Coração se realizem na minha vida: paz, força, perseverança e, por fim, a graça da salvação eterna. Amém.</p>
       </div>
     </div>
   </div>
 
-  <div class="dia-item reveal">
-    <div class="dia-header" onclick="toggleDia(this)">
-      <div class="dia-header-left"><div class="dia-badge">V</div><div class="dia-title"><h3>A Família e os Relacionamentos</h3><span>Quinto Dia</span></div></div>
-      <div class="dia-toggle">+</div>
-    </div>
-    <div class="dia-body">
-      <p class="dia-meditacao">A família é o espaço onde os nós mais dolorosos se formam — e também onde a graça de Deus pode fazer os maiores milagres. Brigas antigas, distâncias, falta de diálogo. Hoje apresentamos a Maria todas as nossas relações.</p>
-      <span class="dia-prayer-label">Oração do Quinto Dia</span>
-      <div class="dia-prayer">
-        <p>Maria, que fostes o coração da Sagrada Família, neste quinto dia vos apresento minha família. Há nós entre nós: silêncios que doem, palavras que feriram, distâncias que cresceram.</p>
-        <p>Intercedei junto a Jesus para que a graça de Deus toque cada coração, restaure os laços rompidos e faça a paz florescer onde havia conflito. Amém.</p>
+  <div class="day-panel" id="day-4">
+    <div class="day-panel-box">
+      <div class="day-big-num">V</div>
+      <h3>A Família Consagrada</h3>
+      <p class="day-sub">Quinto Dia</p>
+      <p class="day-medit">Uma das promessas do Sagrado Coração é trazer paz às famílias consagradas a Ele. Hoje apresentamos nossa família ao Coração de Jesus — com suas alegrias, suas feridas, seus silêncios e suas esperanças. Nenhuma família é perfeita demais ou imperfeita demais para ser entregue a Jesus.</p>
+      <span class="day-prayer-label">Oração do Quinto Dia</span>
+      <div class="day-prayer-text">
+        <p>Jesus, Coração de toda família, neste quinto dia trago-vos todos os que amo. Nossa família carrega alegrias e sofrimentos, aproximações e distâncias. Peço que o vosso Coração seja o centro da nossa casa.</p>
+        <p>Que a paz que vós prometestes envolva cada pessoa da minha família. Que o amor que vós revelastes inspire nossas relações. Sagrado Coração de Jesus, sede o Rei e o centro do nosso lar. Amém.</p>
       </div>
     </div>
   </div>
 
-  <div class="dia-item reveal">
-    <div class="dia-header" onclick="toggleDia(this)">
-      <div class="dia-header-left"><div class="dia-badge">VI</div><div class="dia-title"><h3>Os Nós do Medo e da Ansiedade</h3><span>Sexto Dia</span></div></div>
-      <div class="dia-toggle">+</div>
-    </div>
-    <div class="dia-body">
-      <p class="dia-meditacao">O medo e a ansiedade são nós que paralisam e sufocam. Ansiosos, deixamos de viver o presente para nos perder em preocupações com o amanhã. Hoje pedimos a paz que só Deus pode dar.</p>
-      <span class="dia-prayer-label">Oração do Sexto Dia</span>
-      <div class="dia-prayer">
-        <p>Nossa Senhora, neste sexto dia apresento-vos meus medos. Eles são muitos e às vezes me paralisam. Tenho medo do que pode acontecer, de não ser suficiente, de perder o que amo.</p>
-        <p>Desatai o nó da ansiedade que aperta meu peito. Que a paz de Jesus, que supera toda compreensão, guarde meu coração e minha mente. Amém.</p>
+  <div class="day-panel" id="day-5">
+    <div class="day-panel-box">
+      <div class="day-big-num">VI</div>
+      <h3>Cura e Consolo</h3>
+      <p class="day-sub">Sexto Dia</p>
+      <p class="day-medit">"Vinde a mim todos os que estais cansados e sobrecarregados, e eu vos darei descanso." Estas palavras de Jesus são um convite permanente. Hoje buscamos no Sagrado Coração a cura das feridas da alma e o consolo para todas as dores — visíveis e invisíveis.</p>
+      <span class="day-prayer-label">Oração do Sexto Dia</span>
+      <div class="day-prayer-text">
+        <p>Jesus, fonte de todo consolo, neste sexto dia apresento-vos minhas dores — as físicas, as emocionais, as espirituais. Há feridas que carrego há muito tempo e que só vós podeis verdadeiramente curar.</p>
+        <p>Que o vosso Coração misericordioso toque com suavidade cada uma dessas feridas. Que o vosso descanso substitua o meu cansaço e que vossa paz habite onde havia angústia. Amém.</p>
       </div>
     </div>
   </div>
 
-  <div class="dia-item reveal">
-    <div class="dia-header" onclick="toggleDia(this)">
-      <div class="dia-header-left"><div class="dia-badge">VII</div><div class="dia-title"><h3>Força para Recomeçar</h3><span>Sétimo Dia</span></div></div>
-      <div class="dia-toggle">+</div>
-    </div>
-    <div class="dia-body">
-      <p class="dia-meditacao">Há momentos em que nos sentimos sem forças para continuar. A fé nos ensina que Deus é a nossa força. Hoje pedimos a graça do recomeço — a coragem de não desistir.</p>
-      <span class="dia-prayer-label">Oração do Sétimo Dia</span>
-      <div class="dia-prayer">
-        <p>Maria, neste sétimo dia estou cansado. Há situações na minha vida que me desgastam e às vezes quero desistir. Peço-vos que intercedais por mim para que eu receba a força que só vem de Deus.</p>
-        <p>Que o nó do desânimo seja desatado, e que em seu lugar cresça a coragem de recomeçar. <em>"Tudo posso Naquele que me fortalece."</em> Amém.</p>
+  <div class="day-panel" id="day-6">
+    <div class="day-panel-box">
+      <div class="day-big-num">VII</div>
+      <h3>Força na Tribulação</h3>
+      <p class="day-sub">Sétimo Dia</p>
+      <p class="day-medit">A fé não nos livra dos sofrimentos — mas nos dá força para atravessá-los com Jesus ao nosso lado. Hoje pedimos ao Sagrado Coração a graça da perseverança: a coragem de não desistir mesmo quando tudo parece perdido.</p>
+      <span class="day-prayer-label">Oração do Sétimo Dia</span>
+      <div class="day-prayer-text">
+        <p>Sagrado Coração de Jesus, neste sétimo dia estou cansado. Há provações na minha vida que me desgastam e momentos em que sinto vontade de desistir. Peço-vos a força que só vem de Deus.</p>
+        <p>Que a contemplação do vosso Coração, que sofreu pela humanidade sem desistir, me inspire a permanecer fiel mesmo no sofrimento. "Tudo posso Naquele que me fortalece." Amém.</p>
       </div>
     </div>
   </div>
 
-  <div class="dia-item reveal">
-    <div class="dia-header" onclick="toggleDia(this)">
-      <div class="dia-header-left"><div class="dia-badge">VIII</div><div class="dia-title"><h3>Gratidão e Abertura</h3><span>Oitavo Dia</span></div></div>
-      <div class="dia-toggle">+</div>
-    </div>
-    <div class="dia-body">
-      <p class="dia-meditacao">Às vésperas do último dia somos convidados à gratidão. A gratidão abre o coração e nos dispõe melhor para receber as graças de Deus. Hoje reconhecemos os milagres pequenos e grandes que Deus já operou em nossa vida.</p>
-      <span class="dia-prayer-label">Oração do Oitavo Dia</span>
-      <div class="dia-prayer">
-        <p>Nossa Senhora, neste oitavo dia quero agradecer. Agradecer pela vida, pelas pessoas que amo, pelas graças que já recebi e que nem sempre reconheci. Agradecer por esta novena e por este tempo de oração.</p>
-        <p>Com o coração aberto, peço que a gratidão se torne meu modo de viver. Que eu veja a mão de Deus em tudo — no sol e na chuva, na alegria e na cruz. Amém.</p>
+  <div class="day-panel" id="day-7">
+    <div class="day-panel-box">
+      <div class="day-big-num">VIII</div>
+      <h3>Gratidão e Louvor</h3>
+      <p class="day-sub">Oitavo Dia</p>
+      <p class="day-medit">A gratidão é a resposta do coração que contemplou o amor de Deus. Hoje somos convidados a louvar a Jesus pelo que ele já fez em nossa vida — graças recebidas, proteções invisíveis, momentos de luz que talvez não reconhecemos como dons de Deus.</p>
+      <span class="day-prayer-label">Oração do Oitavo Dia</span>
+      <div class="day-prayer-text">
+        <p>Sagrado Coração de Jesus, neste oitavo dia quero agradecer. Agradecer pela vida, pela fé, pelas pessoas que amo, pelas graças recebidas ao longo destes dias de oração e por todas as que ainda virão.</p>
+        <p>Que a gratidão se torne o tom da minha vida. Que eu aprenda a ver a vossa mão em tudo o que acontece — na alegria e na cruz, no silêncio e na resposta. Amém.</p>
       </div>
     </div>
   </div>
 
-  <div class="dia-item reveal">
-    <div class="dia-header" onclick="toggleDia(this)">
-      <div class="dia-header-left"><div class="dia-badge">IX</div><div class="dia-title"><h3>Petição Final e Consagração</h3><span>Nono Dia</span></div></div>
-      <div class="dia-toggle">+</div>
-    </div>
-    <div class="dia-body">
-      <p class="dia-meditacao">Chegamos ao último dia. É o dia de apresentar de forma definitiva nossas intenções e nos consagrar a Maria. A novena não termina aqui: começa uma nova etapa de vida com confiança renovada.</p>
-      <span class="dia-prayer-label">Oração do Nono Dia</span>
-      <div class="dia-prayer">
-        <p>Nossa Senhora Desatadora de Nós, neste nono e último dia renovo minha fé em vós. Apresento mais uma vez todas as minhas intenções, todos os meus nós, todas as pessoas que amo.</p>
-        <p>Me consagro a vós, minha Mãe. Levai ao coração de Jesus tudo que eu não sei nem como pedir. Que a Vossa vontade e a do Vosso Filho se cumpram em mim. Amém. Ave Maria.</p>
+  <div class="day-panel" id="day-8">
+    <div class="day-panel-box">
+      <div class="day-big-num">IX</div>
+      <h3>Petição Final e Consagração</h3>
+      <p class="day-sub">Nono Dia</p>
+      <p class="day-medit">Chegamos ao último dia. É o momento de apresentar definitivamente nossas intenções ao Sagrado Coração e nos consagrar a Jesus. Esta oração não termina aqui: começa uma nova etapa de vida transformada pelo amor de Cristo.</p>
+      <span class="day-prayer-label">Oração do Nono Dia</span>
+      <div class="day-prayer-text">
+        <p>Sagrado Coração de Jesus, neste nono e último dia renovo minha confiança em vós. Apresento todas as minhas intenções, todos os que amo, todas as situações que me preocupam e que ainda não encontraram resolução.</p>
+        <p>Me consagro a vós. Que o vosso amor seja a força da minha vida, que o vosso Coração seja o meu lar. Cumpra-se em mim a vossa vontade, agora e para sempre. Sagrado Coração de Jesus, eu confio em Vós. Amém.</p>
       </div>
     </div>
   </div>
@@ -700,96 +793,118 @@
 
 <!-- TESTEMUNHOS -->
 <section id="testemunhos">
-  <div class="test-inner">
-    <span class="section-label">Graças recebidas</span>
-    <h2>Testemunhos de Fé</h2>
-    <div class="test-grid">
-      <div class="test-card reveal">
-        <div class="test-stars">★ ★ ★ ★ ★</div>
-        <blockquote>"Meu casamento estava no limite. Havíamos decidido nos separar. Rezei a novena com pouca esperança, mas muita fé. No sétimo dia meu marido me ligou pedindo conversa. Hoje estamos juntos e mais fortes do que nunca."</blockquote>
-        <div class="test-author">
-          <div class="test-avatar">A</div>
-          <div><div class="test-name">Ana Paula M.</div><div class="test-local">Belo Horizonte, MG</div></div>
+  <div class="test-wrap">
+    <div class="section-top reveal">
+      <span class="tag">Graças recebidas</span>
+      <h2>Testemunhos de Fé</h2>
+    </div>
+    <div class="pull-list">
+      <div class="pull-item reveal">
+        <div class="pull-mark-col">"</div>
+        <div class="pull-q">
+          <blockquote>Rezei ao Sagrado Coração por meu filho que havia se afastado da fé e da família. No quinto dia ele me ligou pedindo para conversar. Hoje volta às missas conosco. O Coração de Jesus realmente acolhe nossos filhos.</blockquote>
+          <div class="pull-author">
+            <div class="pull-av">J</div>
+            <div>
+              <div class="pull-name">Joana T.</div>
+              <div class="pull-local">Recife, PE</div>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="test-card reveal">
-        <div class="test-stars">★ ★ ★ ★ ★</div>
-        <blockquote>"Estava desempregado há onze meses. Dívidas se acumulando, família sofrendo. No terceiro dia da novena surgiu uma proposta de emprego inesperada — melhor do que o que eu havia perdido. Deus age de formas que não conseguimos prever."</blockquote>
-        <div class="test-author">
-          <div class="test-avatar">R</div>
-          <div><div class="test-name">Ricardo S.</div><div class="test-local">São Paulo, SP</div></div>
+      <div class="pull-item reveal">
+        <div class="pull-q">
+          <blockquote>Estava enfrentando uma doença grave e com muito medo. Durante os nove dias senti uma paz inexplicável que tomou conta de mim. Os exames deram resultado favorável, mas mais do que a cura física, recebi a paz que só Deus pode dar.</blockquote>
+          <div class="pull-author">
+            <div class="pull-av">M</div>
+            <div>
+              <div class="pull-name">Marcos A.</div>
+              <div class="pull-local">Curitiba, PR</div>
+            </div>
+          </div>
         </div>
+        <div class="pull-mark-col">"</div>
       </div>
-      <div class="test-card reveal">
-        <div class="test-stars">★ ★ ★ ★ ★</div>
-        <blockquote>"Meu filho estava em um vício que destruía nossa família. Rezei por ele durante três novenas seguidas. Ele pediu ajuda sozinho, entrou em tratamento e está há dois anos limpo. Nunca deixarei de agradecer a Nossa Senhora."</blockquote>
-        <div class="test-author">
-          <div class="test-avatar">M</div>
-          <div><div class="test-name">Maria das Graças F.</div><div class="test-local">Fortaleza, CE</div></div>
+      <div class="pull-item reveal">
+        <div class="pull-mark-col">"</div>
+        <div class="pull-q">
+          <blockquote>Meu casamento estava destruído por mágoas acumuladas. Rezei pedindo conversão — mas a minha, não a do meu marido. Algo mudou em mim, e aquela mudança abriu espaço para a reconciliação. Estamos juntos e felizes.</blockquote>
+          <div class="pull-author">
+            <div class="pull-av">L</div>
+            <div>
+              <div class="pull-name">Lúcia B.</div>
+              <div class="pull-local">Porto Alegre, RS</div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- MAGNIFICAT -->
+<!-- PROMESSAS -->
 <section id="magnificat">
-  <span class="section-label">Cântico de Maria</span>
-  <h2>O Magnificat</h2>
-  <p class="sub">A oração com as próprias palavras de Nossa Senhora, registradas no Evangelho de Lucas 1, 46–55.</p>
-  <div class="magnificat-text reveal">
-    <p>A minha alma engrandece ao Senhor,<br>e o meu espírito se alegra em Deus, meu Salvador;</p>
-    <p>porque atentou para a humildade de sua serva.<br>Pois eis que, desde agora, me proclamarão bem-aventurada todas as gerações,</p>
-    <p>porque o Poderoso fez grandes coisas em meu favor,<br>e o seu nome é santo.</p>
-    <p>E sua misericórdia vai de geração em geração<br>sobre os que o temem.</p>
-    <p>Mostrou o poder do seu braço,<br>dispersou os arrogantes de coração.</p>
-    <p>Derrubou poderosos de seus tronos<br>e exaltou os humildes.</p>
-    <p>Cumulou de bens os famintos<br>e despediu os ricos de mãos vazias.</p>
-    <p>Amparou Israel, seu servo,<br>lembrando-se da sua misericórdia,<br>como havia prometido a nossos pais,<br>em favor de Abraão e de sua descendência para sempre.</p>
+  <div class="prom-wrap">
+    <div class="section-top reveal">
+      <span class="tag" style="color:var(--violet);">Reveladas a Santa Margarida</span>
+      <h2 class="dark">As Doze Promessas do Sagrado Coração</h2>
+      <p style="font-size:0.9rem;color:var(--muted);max-width:480px;margin:1rem auto 0;line-height:1.9;">Jesus prometeu estas graças a todos os que honrarem seu Sagrado Coração, conforme revelado a Santa Margarida Maria Alacoque entre 1673 e 1675.</p>
+    </div>
+    <div class="prom-grid reveal">
+      <div class="prom-item"><div class="prom-n">1</div><p>Darei toda a paz necessária no estado de vida de cada um.</p></div>
+      <div class="prom-item"><div class="prom-n">2</div><p>Estabelecerei a paz nas famílias.</p></div>
+      <div class="prom-item"><div class="prom-n">3</div><p>Consolarei os que estiverem em aflições e tribulações.</p></div>
+      <div class="prom-item"><div class="prom-n">4</div><p>Serei refúgio seguro durante a vida e, especialmente, na hora da morte.</p></div>
+      <div class="prom-item"><div class="prom-n">5</div><p>Infundirei fervor nos que estão tépidos.</p></div>
+      <div class="prom-item"><div class="prom-n">6</div><p>Os pecadores encontrarão em meu Coração a fonte e o oceano infinito da misericórdia.</p></div>
+      <div class="prom-item"><div class="prom-n">7</div><p>As almas tiepidas tornar-se-ão fervorosas.</p></div>
+      <div class="prom-item"><div class="prom-n">8</div><p>As almas fervorosas elevar-se-ão rapidamente a grande perfeição.</p></div>
+      <div class="prom-item"><div class="prom-n">9</div><p>Abençoarei os lares em que a imagem do meu Coração for exposta e venerada.</p></div>
+      <div class="prom-item"><div class="prom-n">10</div><p>Darei aos sacerdotes o poder de tocar os corações mais endurecidos.</p></div>
+      <div class="prom-item"><div class="prom-n">11</div><p>As pessoas que propagarem esta devoção terão seus nomes escritos em meu Coração.</p></div>
+      <div class="prom-item"><div class="prom-n">12</div><p>Concederei a graça da perseverança final e de morrer em meu Coração.</p></div>
+    </div>
+    <p class="prom-ref">Jesus a Santa Margarida Maria Alacoque · Paray-le-Monial, França</p>
   </div>
-  <span class="magnificat-ref">Lucas 1, 46–55</span>
 </section>
 
-<!-- CONSAGRAÇÃO FINAL -->
+<!-- CONSAGRAÇÃO -->
 <section id="consagracao">
-  <div class="cons-inner">
-    <span class="section-label">Após os nove dias</span>
-    <h2>Oração de Consagração</h2>
-    <p class="sub">Reze esta oração ao concluir a novena, consagrando sua vida e as pessoas que ama à intercessão de Nossa Senhora Desatadora de Nós.</p>
-    <div class="cons-prayer reveal">
-      <p>Maria, Mãe de Deus e nossa Mãe, eu me consagro a vós com toda a confiança de meu coração. Recebi de Deus, por vossa intercessão, dias de graça, de reflexão e de oração durante esta novena.</p>
-      <p>Consagro a vós minha vida, minha família, meu trabalho, minha saúde e tudo o que sou e tenho. Confio especialmente em vossas mãos os nós que ainda não foram totalmente desatados — pois sei que o tempo de Deus é perfeito.</p>
-      <p>Que eu não perca a confiança nos momentos de espera. Que a fé que cresceu nestes nove dias continue a me sustentar. E que um dia eu possa cantar, como vós, que o Senhor fez grandes coisas em meu favor.</p>
-      <p>Nossa Senhora Desatadora de Nós, rogai por nós. Amém.</p>
+  <div class="cons-wrap">
+    <div class="cons-left reveal">
+      <span class="tag">Após os nove dias</span>
+      <h2>Ato de Consagração ao Sagrado Coração</h2>
+      <p>Reze esta oração ao concluir os nove dias, consagrando sua vida e as pessoas que ama ao Sagrado Coração de Jesus.</p>
+      <div class="cons-deco">♥</div>
     </div>
-    <div class="divider" style="margin-top:3rem;"><span class="divider-icon">✦</span></div>
-    <p style="font-size:0.85rem;color:#7a6a5a;font-weight:300;text-align:center;max-width:500px;margin:0 auto;line-height:1.8;">Você pode rezar a novena quantas vezes quiser. Muitos fiéis a rezam mensalmente, apresentando novas intenções a cada ciclo.</p>
+    <div class="cons-right reveal">
+      <p>Sagrado Coração de Jesus, a vós me consagro e ofereço minha pessoa, minha vida, minhas ações, minhas penas e sofrimentos, a fim de que meu ser todo seja empregado em vos amar, honrar e glorificar.</p>
+      <p>É minha vontade firme de vos pertencer totalmente e fazer tudo pelo vosso amor, renunciando de todo coração tudo quanto vos possa desagradar. Tomo-vos, Sagrado Coração, por único objeto do meu amor, protetor da minha vida, garantia da minha salvação, remédio da minha fraqueza e inconstância.</p>
+      <p>Sede, pois, Coração de bondade, minha justificação perante Deus Pai. Sede meu refúgio seguro na hora da morte e meu caminho para a vida eterna.</p>
+      <p>Sagrado Coração de Jesus, em vós confio. Que o vosso reino venha. Amém.</p>
+      <p class="cons-note">Você pode repetir a oração quantas vezes quiser. Muitos fiéis a rezam mensalmente, especialmente na sexta-feira antes da primeira sexta do mês, em honra ao Sagrado Coração.</p>
+    </div>
   </div>
 </section>
 
 <!-- FOOTER -->
 <footer>
-  <div class="footer-inner">
-    <div class="footer-logo">Nossa Senhora <em>Desatadora de Nós</em></div>
-    <div class="footer-divider"></div>
-    <div class="footer-info">
-      <div class="footer-info-row">
-        <span class="dot"></span>
-        <strong>CNPJ</strong>
-        <span>61.844.579/0001-63</span>
-        <span class="dot"></span>
-      </div>
-      
-    </div>
-    <div class="footer-divider"></div>
-    <p class="footer-copy">© 2025 — Todos os direitos reservados</p>
-  </div>
+  <div class="foot-logo">Sagrado Coração <em>de Jesus</em></div>
+  <div class="foot-hr"></div>
+  <p class="foot-info"><strong>CNPJ</strong> 61.844.579/0001-63</p>
+  <p class="foot-copy">© 2025 — Todos os direitos reservados</p>
 </footer>
 
 <script>
-  function toggleDia(header) {
-    header.closest('.dia-item').classList.toggle('open');
+  function showDay(index) {
+    document.querySelectorAll('.day-panel').forEach((p, i) => {
+      p.classList.toggle('active', i === index);
+    });
+    document.querySelectorAll('.day-tab').forEach((t, i) => {
+      t.classList.toggle('active', i === index);
+    });
   }
+
   const io = new IntersectionObserver((entries) => {
     entries.forEach(e => {
       if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
