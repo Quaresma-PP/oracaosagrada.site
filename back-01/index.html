@@ -217,7 +217,7 @@
 
     var jaRedirecionou = false;
     function irParaCheckout() {
-      if (jaRedirecionou || CHECKOUT_URL === "https://pay.hub.la/PXsd3aWs2h0Cx9UIXavv") return;
+      if (jaRedirecionou) return;
       jaRedirecionou = true;
       window.location.href = CHECKOUT_URL;
     }
