@@ -140,11 +140,15 @@ async function passo1AbrirProdutoEAdicionarAoCarrinho(page: Page, pedido: Pedido
   // fechado a tempo — ele fica exatamente em cima do botão de checkout.
   await fecharBannerCookies(page);
 
-  // O botão de seguir pro checkout pode ser link OU botão, dependendo do
-  // tema — procura pelos dois tipos.
+  // Texto confirmado por print real: "FINALIZAR PEDIDO". Mantém as outras
+  // variantes como fallback pra outros temas/lojas.
   const irParaCarrinho = page
-    .getByRole("link", { name: /finalizar compra|fechar pedido|ir para o carrinho|ver carrinho/i })
-    .or(page.getByRole("button", { name: /finalizar compra|fechar pedido|ir para o carrinho|ver carrinho/i }));
+    .getByRole("link", { name: /finalizar pedido|finalizar compra|fechar pedido|ir para o carrinho|ver carrinho/i })
+    .or(
+      page.getByRole("button", {
+        name: /finalizar pedido|finalizar compra|fechar pedido|ir para o carrinho|ver carrinho/i,
+      })
+    );
   await irParaCarrinho.first().click({ timeout: 10000 });
 }
 
