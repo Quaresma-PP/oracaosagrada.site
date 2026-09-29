@@ -155,6 +155,15 @@ async function passo1AbrirProdutoEAdicionarAoCarrinho(page: Page, pedido: Pedido
 async function passo2Login(page: Page) {
   await page.waitForLoadState("domcontentloaded");
 
+  // O checkout da VTEX abre na etapa 1 ("Sacola") com o carrinho de novo
+  // e outro botão "FINALIZAR PEDIDO" — precisa clicar aqui de novo pra
+  // avançar pra "Dados pessoais" antes de qualquer coisa de login.
+  const finalizarNaSacola = page.getByRole("button", { name: /finalizar pedido/i });
+  if (await finalizarNaSacola.first().isVisible({ timeout: 5000 }).catch(() => false)) {
+    await finalizarNaSacola.first().click();
+    await page.waitForTimeout(1500);
+  }
+
   const jaLogado = await page.getByText(config.storeLoginEmail, { exact: false }).isVisible({ timeout: 3000 }).catch(() => false);
   if (jaLogado) return;
 
