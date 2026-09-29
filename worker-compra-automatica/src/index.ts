@@ -9,6 +9,11 @@ const CAMPOS_PEDIDO =
 
 const MAX_TENTATIVAS = 3;
 
+// Por enquanto o robô só sabe comprar na Loja Santuário Nacional (VTEX).
+// Pedidos de outras lojas (ex: desatadoradosnosoficial.com.br, WooCommerce)
+// ficam de fora da automação e continuam no fluxo manual do painel /admin.
+const DOMINIO_SUPORTADO = "lojasantuarionacional.com.br";
+
 async function buscarProximoPedido(): Promise<PedidoRow | null> {
   const { data, error } = await supabase
     .from("pedidos")
@@ -16,6 +21,7 @@ async function buscarProximoPedido(): Promise<PedidoRow | null> {
     .eq("status", "pago")
     .in("automacao_status", ["pendente", "aprovado"])
     .lt("automacao_tentativas", MAX_TENTATIVAS)
+    .like("produto_url_oficial", `%${DOMINIO_SUPORTADO}%`)
     .order("created_at", { ascending: true })
     .limit(1)
     .maybeSingle();
