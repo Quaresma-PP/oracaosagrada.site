@@ -178,6 +178,16 @@ async function passo2DadosPessoais(page: Page, pedido: PedidoRow) {
   const { primeiro, ultimo } = primeiroEUltimoNome(pedido.cliente_nome);
   const campoPrimeiroNome = page.getByLabel("Primeiro nome");
   if (await campoPrimeiroNome.isVisible({ timeout: 5000 }).catch(() => false)) {
+    // O campo "CPF" da loja só aceita CPF de pessoa física (11 dígitos) —
+    // pedidos com CNPJ (pessoa jurídica) não têm como preencher esse campo
+    // do jeito que ele está hoje, precisa de intervenção manual.
+    if (pedido.cliente_cpf.length !== 11) {
+      throw new Error(
+        `Documento do cliente tem ${pedido.cliente_cpf.length} dígitos (esperado 11, CPF de pessoa física) — ` +
+          "provavelmente é um CNPJ, que esse checkout não aceita no campo principal. Precisa de compra manual."
+      );
+    }
+
     await campoPrimeiroNome.fill(primeiro);
     await page.getByLabel("Último nome").fill(ultimo);
     await page.getByPlaceholder("999.999.999-").fill(pedido.cliente_cpf);
@@ -185,6 +195,18 @@ async function passo2DadosPessoais(page: Page, pedido: PedidoRow) {
   }
 
   await page.getByRole("button", { name: "Ir para a Entrega" }).click({ timeout: 10000 });
+
+  // Confirma que realmente saiu da etapa "Dados pessoais" — se ficar
+  // travado (ex: erro de validação), falha aqui com uma mensagem clara em
+  // vez de só não achar os campos da próxima etapa.
+  const aindaEmDadosPessoais = await page
+    .getByRole("heading", { name: /dados pessoais/i })
+    .isVisible({ timeout: 4000 })
+    .catch(() => false);
+  if (aindaEmDadosPessoais) {
+    const erroValidacao = await page.getByText(/informe um documento válido|campo obrigatório/i).first().textContent().catch(() => null);
+    throw new Error(`Não avançou da etapa "Dados pessoais"${erroValidacao ? ` — erro na tela: ${erroValidacao}` : ""}.`);
+  }
 }
 
 async function passo3Endereco(page: Page, pedido: PedidoRow) {
