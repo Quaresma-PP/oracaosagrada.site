@@ -38,8 +38,9 @@ export async function executarCompra(pedido: PedidoRow): Promise<ResultadoCompra
     };
   }
 
-  const browser = await chromium.launch({ headless: true });
+  let browser: Browser | undefined;
   try {
+    browser = await chromium.launch({ headless: true });
     const context = await browser.newContext({ locale: "pt-BR" });
     const page = await context.newPage();
 
@@ -64,7 +65,7 @@ export async function executarCompra(pedido: PedidoRow): Promise<ResultadoCompra
 
     return { sucesso: true, precisaAprovacao: false, numeroPedidoLoja, screenshot };
   } catch (err) {
-    const page = browser.contexts()[0]?.pages()[0];
+    const page = browser?.contexts()[0]?.pages()[0];
     const screenshot = page ? await page.screenshot({ fullPage: true }).catch(() => Buffer.alloc(0)) : Buffer.alloc(0);
     return {
       sucesso: false,
@@ -73,7 +74,7 @@ export async function executarCompra(pedido: PedidoRow): Promise<ResultadoCompra
       screenshot,
     };
   } finally {
-    await browser.close();
+    await browser?.close();
   }
 }
 

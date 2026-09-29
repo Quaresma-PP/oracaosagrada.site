@@ -54,8 +54,27 @@ async function processarPedido(pedido: PedidoRow) {
   console.log(`[${pedido.id}] iniciando compra automática (tentativa ${pedido.automacao_tentativas + 1})`);
   await marcarProcessando(pedido.id);
 
-  const jaAprovado = pedido.automacao_status === "aprovado";
-  const resultado = jaAprovado ? await executarCompraAprovada(pedido) : await executarCompra(pedido);
+  // Rede de segurança: qualquer erro inesperado aqui (não só os que
+  // executarCompra já trata) precisa sempre tirar o pedido de
+  // "processando" — senão ele fica travado pra sempre, porque a busca só
+  // pega pedidos em "pendente"/"aprovado".
+  let resultado;
+  try {
+    const jaAprovado = pedido.automacao_status === "aprovado";
+    resultado = jaAprovado ? await executarCompraAprovada(pedido) : await executarCompra(pedido);
+  } catch (err) {
+    console.error(`[${pedido.id}] erro inesperado:`, err);
+    await supabase
+      .from("pedidos")
+      .update({
+        automacao_status: "falhou",
+        automacao_erro: err instanceof Error ? err.message : String(err),
+        automacao_tentativas: pedido.automacao_tentativas + 1,
+        automacao_atualizado_em: new Date().toISOString(),
+      })
+      .eq("id", pedido.id);
+    return;
+  }
 
   const screenshotPath = await salvarScreenshot(pedido.id, resultado.screenshot);
 
