@@ -109,10 +109,31 @@ async function passo1AbrirProdutoEAdicionarAoCarrinho(page: Page, pedido: Pedido
     }
   }
 
-  const botaoComprar = page.getByRole("button", { name: /adicionar (à|a) sacola|comprar agora|comprar/i });
+  // O site usa "carrinho" (não "sacola") — confirmado pelo painel
+  // "MEU CARRINHO" que abre ao clicar em comprar.
+  const botaoComprar = page.getByRole("button", {
+    name: /adicionar ao carrinho|adicionar (à|a) sacola|comprar agora|comprar/i,
+  });
   await botaoComprar.first().click();
 
-  const irParaCarrinho = page.getByRole("link", { name: /finalizar compra|ir para o carrinho|ver sacola/i });
+  // Confirma que o item foi realmente adicionado (o painel abre mesmo
+  // quando o carrinho continua vazio, então só abrir não é garantia).
+  await page.waitForTimeout(1500);
+  const carrinhoVazio = await page
+    .getByText(/carrinho est[áa] vazio/i)
+    .isVisible({ timeout: 3000 })
+    .catch(() => false);
+  if (carrinhoVazio) {
+    throw new Error(
+      "Cliquei em comprar mas o carrinho continuou vazio — o botão certo pode ser outro (ajustar seletor em passo1)."
+    );
+  }
+
+  // O botão de seguir pro checkout pode ser link OU botão, dependendo do
+  // tema — procura pelos dois tipos.
+  const irParaCarrinho = page
+    .getByRole("link", { name: /finalizar compra|fechar pedido|ir para o carrinho|ver carrinho/i })
+    .or(page.getByRole("button", { name: /finalizar compra|fechar pedido|ir para o carrinho|ver carrinho/i }));
   await irParaCarrinho.first().click({ timeout: 10000 });
 }
 
