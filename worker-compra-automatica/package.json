@@ -11,10 +11,12 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.4",
-    "playwright": "^1.47.2"
+    "playwright": "^1.47.2",
+    "ws": "^8.18.0"
   },
   "devDependencies": {
     "@types/node": "^22.5.5",
+    "@types/ws": "^8.5.12",
     "tsx": "^4.19.1",
     "typescript": "^5.5.4"
   }
