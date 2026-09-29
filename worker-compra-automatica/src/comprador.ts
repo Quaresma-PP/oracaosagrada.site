@@ -1,24 +1,18 @@
 // Automação de compra na Loja Santuário Nacional (VTEX FastStore).
 //
-// IMPORTANTE — leia antes de rodar em produção:
-// A Loja Santuário Nacional roda em VTEX FastStore (confirmado pelos headers
-// HTTP do site), que gera nomes de classe CSS aleatórios a cada build. Por
-// isso este arquivo usa seletores por TEXTO/ROLE (getByRole, getByText,
-// getByLabel) em vez de classes CSS — são muito mais estáveis, mas ainda
-// dependem dos textos reais que a loja usa ("Entrar", "Adicionar à sacola",
-// "Finalizar compra", etc.), que eu não pude conferir ao vivo (não tenho
-// como abrir um navegador de verdade contra o site a partir daqui).
+// Os seletores de carrinho → dados pessoais → endereço → chegada na tela
+// de pagamento foram validados com uma gravação real do Playwright Inspector
+// (2026-09-29), usando um e-mail de visitante (fluxo guest checkout).
 //
-// Antes do primeiro uso real, rode `npm run codegen` (abre o Playwright
-// Inspector no site) logado na conta, clique manualmente em cada passo do
-// fluxo abaixo e compare/ajuste os textos e seletores aqui com o que o
-// Inspector mostrar. Cada passo está isolado numa função `passoN` pra
-// facilitar o ajuste individual sem mexer no resto.
+// AINDA EM ABERTO: a gravação usou um e-mail de teste, não a conta real da
+// loja (com senha e cartão salvo) — por isso os passos de login-com-senha
+// (passo2Login, quando a conta já existe) e seleção de cartão salvo
+// (passo5SelecionarPagamentoSalvo) continuam com seletores best-effort, não
+// confirmados. Precisam de uma gravação nova logada na conta de verdade
+// antes de confiar no modo automático de pagamento.
 import { chromium, type Browser, type Page } from "playwright";
 import { config } from "./config.js";
 import type { PedidoRow } from "./types.js";
-
-const LOJA_URL = "https://www.lojasantuarionacional.com.br";
 
 export interface ResultadoCompra {
   sucesso: boolean;
@@ -45,9 +39,9 @@ export async function executarCompra(pedido: PedidoRow): Promise<ResultadoCompra
     const page = await context.newPage();
 
     await passo1AbrirProdutoEAdicionarAoCarrinho(page, pedido);
-    await passo2Login(page);
-    await passo3PreencherEnderecoDeEntrega(page, pedido);
-    const totalCarrinho = await passo4SelecionarFreteEChegarNoPagamento(page);
+    await passo2DadosPessoais(page, pedido);
+    await passo3Endereco(page, pedido);
+    const totalCarrinho = await passo4ChegarNoPagamento(page);
 
     // Trava de segurança: nunca paga sozinho acima do teto configurado,
     // mesmo em modo automático — protege contra produto/preço errado.
@@ -79,7 +73,7 @@ export async function executarCompra(pedido: PedidoRow): Promise<ResultadoCompra
 }
 
 // Retoma uma compra já aprovada pelo admin: refaz os passos 1-4 (carrinho +
-// endereço + frete, que são idempotentes/rápidos) e, dessa vez, sempre
+// dados + endereço, que são idempotentes/rápidos) e, dessa vez, sempre
 // finaliza — sem essa função, cada aprovação exigiria manter uma sessão de
 // navegador aberta esperando indefinidamente, o que é frágil em um worker
 // que pode reiniciar.
@@ -93,16 +87,23 @@ export async function executarCompraAprovada(pedido: PedidoRow): Promise<Resulta
   }
 }
 
-// O banner de cookies fica fixo na tela e cobre botões importantes (já
-// vimos ele tampar o botão de finalizar o carrinho). Chamado mais de uma
-// vez ao longo do fluxo porque ele pode demorar pra renderizar ou
-// reaparecer.
+// O banner de cookies fica fixo na tela e cobre botões importantes.
+// Chamado mais de uma vez ao longo do fluxo porque ele pode demorar pra
+// renderizar ou reaparecer.
 async function fecharBannerCookies(page: Page) {
-  const aceitarCookies = page.getByRole("button", { name: /^aceitar$/i });
+  const aceitarCookies = page.getByRole("button", { name: "Aceitar" });
   if (await aceitarCookies.isVisible({ timeout: 8000 }).catch(() => false)) {
     await aceitarCookies.click().catch(() => {});
     await page.waitForTimeout(500);
   }
+}
+
+function primeiroEUltimoNome(nomeCompleto: string): { primeiro: string; ultimo: string } {
+  const partes = nomeCompleto.trim().split(/\s+/);
+  return {
+    primeiro: partes[0] ?? nomeCompleto,
+    ultimo: partes.length > 1 ? partes.slice(1).join(" ") : partes[0] ?? nomeCompleto,
+  };
 }
 
 async function passo1AbrirProdutoEAdicionarAoCarrinho(page: Page, pedido: PedidoRow) {
@@ -116,132 +117,114 @@ async function passo1AbrirProdutoEAdicionarAoCarrinho(page: Page, pedido: Pedido
     }
   }
 
-  // O site usa "carrinho" (não "sacola") — confirmado pelo painel
-  // "MEU CARRINHO" que abre ao clicar em comprar.
-  const botaoComprar = page.getByRole("button", {
-    name: /adicionar ao carrinho|adicionar (à|a) sacola|comprar agora|comprar/i,
-  });
-  await botaoComprar.first().click();
+  // Confirmado por gravação real: o botão de comprar é exatamente "Comprar".
+  await page.getByRole("button", { name: "Comprar" }).click();
 
-  // Confirma que o item foi realmente adicionado (o painel abre mesmo
-  // quando o carrinho continua vazio, então só abrir não é garantia).
+  // Confirma que o item foi realmente adicionado antes de seguir.
   await page.waitForTimeout(1500);
   const carrinhoVazio = await page
     .getByText(/carrinho est[áa] vazio/i)
     .isVisible({ timeout: 3000 })
     .catch(() => false);
   if (carrinhoVazio) {
-    throw new Error(
-      "Cliquei em comprar mas o carrinho continuou vazio — o botão certo pode ser outro (ajustar seletor em passo1)."
-    );
+    throw new Error("Cliquei em Comprar mas o carrinho continuou vazio.");
   }
 
-  // O banner de cookies pode ter reaparecido ou ainda não ter sido
-  // fechado a tempo — ele fica exatamente em cima do botão de checkout.
   await fecharBannerCookies(page);
 
-  // Texto confirmado por print real: "FINALIZAR PEDIDO". Mantém as outras
-  // variantes como fallback pra outros temas/lojas.
-  const irParaCarrinho = page
-    .getByRole("link", { name: /finalizar pedido|finalizar compra|fechar pedido|ir para o carrinho|ver carrinho/i })
-    .or(
-      page.getByRole("button", {
-        name: /finalizar pedido|finalizar compra|fechar pedido|ir para o carrinho|ver carrinho/i,
-      })
-    );
-  await irParaCarrinho.first().click({ timeout: 10000 });
+  // Gravação real mostrou dois cliques até sair do carrinho: o botão
+  // genérico do painel (testid fs-button) e depois o link/botão
+  // "Finalizar pedido" — em qualquer uma das duas formas que aparecer.
+  const botaoPainel = page.getByTestId("fs-button");
+  if (await botaoPainel.first().isVisible({ timeout: 3000 }).catch(() => false)) {
+    await botaoPainel.first().click();
+    await page.waitForTimeout(500);
+  }
+
+  const finalizarPedido = page
+    .getByRole("link", { name: /finalizar pedido/i })
+    .or(page.getByRole("button", { name: /finalizar pedido/i }));
+  await finalizarPedido.first().click({ timeout: 10000 });
+
+  // O checkout pode abrir numa etapa intermediária de revisão do carrinho
+  // ("Sacola") com outro botão igual — clica de novo se ele aparecer.
+  await page.waitForTimeout(1000);
+  const finalizarDeNovo = page.getByRole("button", { name: /finalizar pedido/i });
+  if (await finalizarDeNovo.first().isVisible({ timeout: 3000 }).catch(() => false)) {
+    await finalizarDeNovo.first().click();
+  }
 }
 
-async function passo2Login(page: Page) {
+async function passo2DadosPessoais(page: Page, pedido: PedidoRow) {
   await page.waitForLoadState("domcontentloaded");
 
-  // O checkout da VTEX abre na etapa 1 ("Sacola") com o carrinho de novo
-  // e outro botão "FINALIZAR PEDIDO" — precisa clicar aqui de novo pra
-  // avançar pra "Dados pessoais" antes de qualquer coisa de login.
-  const finalizarNaSacola = page.getByRole("button", { name: /finalizar pedido/i });
-  if (await finalizarNaSacola.first().isVisible({ timeout: 5000 }).catch(() => false)) {
-    await finalizarNaSacola.first().click();
-    await page.waitForTimeout(1500);
-  }
+  const campoEmail = page.getByPlaceholder("seu@email.com");
+  await campoEmail.click({ timeout: 15000 });
+  await campoEmail.fill(config.storeLoginEmail);
+  await page.getByRole("button", { name: "Continuar" }).click();
 
-  const jaLogado = await page.getByText(config.storeLoginEmail, { exact: false }).isVisible({ timeout: 3000 }).catch(() => false);
-  if (jaLogado) return;
-
-  const botaoEntrar = page.getByRole("button", { name: /entrar|login|identifique-se/i });
-  if (await botaoEntrar.first().isVisible({ timeout: 5000 }).catch(() => false)) {
-    await botaoEntrar.first().click();
-  }
-
-  const campoEmail = page.getByPlaceholder(/e-mail|email/i).or(page.getByLabel(/e-mail|email/i));
-  await campoEmail.first().fill(config.storeLoginEmail, { timeout: 10000 });
-
-  const continuar = page.getByRole("button", { name: /continuar|avançar|próximo/i });
-  if (await continuar.first().isVisible({ timeout: 3000 }).catch(() => false)) {
-    await continuar.first().click();
-  }
-
+  // Se a conta já existe, pode pedir senha aqui antes de mostrar os campos
+  // de nome — ainda não confirmado com a conta real (login-por-senha).
   const campoSenha = page.getByPlaceholder(/senha/i).or(page.getByLabel(/senha/i));
-  const temCampoSenha = await campoSenha.first().isVisible({ timeout: 8000 }).catch(() => false);
-
-  if (!temCampoSenha) {
-    throw new Error(
-      "Não encontrei campo de senha após o e-mail — a conta pode estar configurada pra login por " +
-        "código enviado no e-mail (passwordless), que não dá pra automatizar sem acesso à caixa de entrada. " +
-        "Verifique nas configurações da conta na loja se dá pra ativar login por senha."
-    );
+  const pediuSenha = await campoSenha.first().isVisible({ timeout: 4000 }).catch(() => false);
+  if (pediuSenha) {
+    await campoSenha.first().fill(config.storeLoginSenha);
+    await page.getByRole("button", { name: /entrar|confirmar|continuar/i }).first().click();
+    await page.waitForTimeout(1000);
   }
 
-  await campoSenha.first().fill(config.storeLoginSenha);
-  await page.getByRole("button", { name: /entrar|confirmar|continuar/i }).first().click();
-  await page.waitForLoadState("networkidle", { timeout: 15000 }).catch(() => {});
+  // Campos de nome só aparecem no fluxo de visitante/primeira compra — se
+  // já logado numa conta existente com dados salvos, isso pode não aparecer.
+  const { primeiro, ultimo } = primeiroEUltimoNome(pedido.cliente_nome);
+  const campoPrimeiroNome = page.getByLabel("Primeiro nome");
+  if (await campoPrimeiroNome.isVisible({ timeout: 5000 }).catch(() => false)) {
+    await campoPrimeiroNome.fill(primeiro);
+    await page.getByLabel("Último nome").fill(ultimo);
+    await page.getByPlaceholder("999.999.999-").fill(pedido.cliente_cpf);
+    await page.getByPlaceholder("99999-9999").fill(pedido.cliente_telefone ?? "");
+  }
+
+  await page.getByRole("button", { name: "Ir para a Entrega" }).click({ timeout: 10000 });
 }
 
-async function passo3PreencherEnderecoDeEntrega(page: Page, pedido: PedidoRow) {
-  // Escolhe explicitamente "novo endereço" — NUNCA reaproveita um endereço
-  // salvo na conta, porque o pedido é sempre pra um cliente diferente.
-  const novoEndereco = page.getByRole("button", { name: /novo endereço|adicionar endereço|outro endereço/i });
-  if (await novoEndereco.first().isVisible({ timeout: 5000 }).catch(() => false)) {
-    await novoEndereco.first().click();
-  }
+async function passo3Endereco(page: Page, pedido: PedidoRow) {
+  await page.waitForLoadState("domcontentloaded");
 
-  const campoCep = page.getByPlaceholder(/cep/i).or(page.getByLabel(/cep/i));
-  await campoCep.first().fill(pedido.cep ?? "", { timeout: 10000 });
+  const campoCep = page.getByPlaceholder("Digite o CEP");
+  await campoCep.fill(pedido.cep ?? "", { timeout: 15000 });
   await page.waitForTimeout(1500); // dá tempo do autofill de rua/bairro/cidade rodar
 
-  await preencherSeVazio(page, /número/i, pedido.numero ?? "");
-  if (pedido.complemento) await preencherSeVazio(page, /complemento/i, pedido.complemento);
-  await preencherSeVazio(page, /bairro/i, pedido.bairro ?? "");
-  await preencherSeVazio(page, /rua|logradouro|endereço/i, pedido.rua ?? "");
-  await preencherSeVazio(page, /cidade/i, pedido.cidade ?? "");
-
-  const campoNomeDestinatario = page.getByPlaceholder(/nome completo|destinatário/i);
-  if (await campoNomeDestinatario.first().isVisible({ timeout: 2000 }).catch(() => false)) {
-    await campoNomeDestinatario.first().fill(pedido.cliente_nome);
+  const campoNumero = page.getByLabel("Número");
+  if (await campoNumero.isVisible({ timeout: 3000 }).catch(() => false)) {
+    await campoNumero.fill(pedido.numero ?? "");
   }
 
-  const avancar = page.getByRole("button", { name: /continuar|ir para entrega|avançar/i });
-  await avancar.first().click({ timeout: 10000 });
-}
+  if (pedido.complemento) {
+    const campoComplemento = page.getByPlaceholder("Opcional");
+    if (await campoComplemento.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await campoComplemento.fill(pedido.complemento);
+    }
+  }
 
-async function preencherSeVazio(page: Page, label: RegExp, valor: string) {
-  if (!valor) return;
-  const campo = page.getByPlaceholder(label).or(page.getByLabel(label));
-  const el = campo.first();
-  if (!(await el.isVisible({ timeout: 2000 }).catch(() => false))) return;
-  const atual = await el.inputValue().catch(() => "");
-  if (!atual) await el.fill(valor);
-}
+  // Destinatário — preenche só se estiver vazio (a loja pode preencher
+  // sozinho a partir do nome já informado na etapa anterior).
+  const campoDestinatario = page.getByLabel("Destinatário");
+  if (await campoDestinatario.isVisible({ timeout: 2000 }).catch(() => false)) {
+    const atual = await campoDestinatario.inputValue().catch(() => "");
+    if (!atual) await campoDestinatario.fill(pedido.cliente_nome);
+  }
 
-async function passo4SelecionarFreteEChegarNoPagamento(page: Page): Promise<number | null> {
-  // Pega a primeira opção de frete disponível (a mais simples de automatizar
-  // de forma confiável; se quiser priorizar frete mais barato, ajuste aqui).
+  // Se aparecer uma lista de opções de frete, marca a primeira — não visto
+  // na gravação real (pode ter sido auto-selecionada), mantido por segurança.
   const opcaoFrete = page.getByRole("radio").first();
-  if (await opcaoFrete.isVisible({ timeout: 5000 }).catch(() => false)) {
-    await opcaoFrete.check();
+  if (await opcaoFrete.isVisible({ timeout: 3000 }).catch(() => false)) {
+    await opcaoFrete.check().catch(() => {});
   }
 
-  const irParaPagamento = page.getByRole("button", { name: /ir para pagamento|continuar|avançar/i });
-  await irParaPagamento.first().click({ timeout: 10000 });
+  await page.getByRole("button", { name: "Ir para o pagamento" }).click({ timeout: 10000 });
+}
+
+async function passo4ChegarNoPagamento(page: Page): Promise<number | null> {
   await page.waitForLoadState("networkidle", { timeout: 15000 }).catch(() => {});
 
   const totalTexto = await page
@@ -257,20 +240,25 @@ async function passo4SelecionarFreteEChegarNoPagamento(page: Page): Promise<numb
   return Number(match[1].replace(",", "."));
 }
 
+// AINDA NÃO CONFIRMADO com a conta real — precisa de gravação logada com
+// usuário/senha reais pra ver como o cartão salvo aparece nessa loja.
 async function passo5SelecionarPagamentoSalvo(page: Page) {
   const cartaoSalvo = page.getByText(/cartão .*final|•••• ?\d{4}/i);
   await cartaoSalvo.first().click({ timeout: 10000 });
 
   if (config.storeCardCvv) {
-    const campoCvv = page.getByPlaceholder(/cvv|código de segurança/i).or(page.getByLabel(/cvv/i));
+    const campoCvv = page.getByPlaceholder(/cvv|código de segurança/i).or(page.getByLabel(/cvv|código de segurança/i));
     if (await campoCvv.first().isVisible({ timeout: 3000 }).catch(() => false)) {
       await campoCvv.first().fill(config.storeCardCvv);
     }
   }
 }
 
+// AINDA NÃO CONFIRMADO — o texto exato do botão final não apareceu na
+// gravação (o cartão de teste usado era inválido e travou antes de chegar
+// nele).
 async function passo6FinalizarCompra(page: Page): Promise<string | undefined> {
-  const finalizar = page.getByRole("button", { name: /finalizar compra|confirmar pedido|pagar/i });
+  const finalizar = page.getByRole("button", { name: /finalizar compra|finalizar pedido|confirmar pedido|pagar/i });
   await finalizar.first().click({ timeout: 10000 });
   await page.waitForLoadState("networkidle", { timeout: 20000 }).catch(() => {});
 
