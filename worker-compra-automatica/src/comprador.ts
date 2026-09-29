@@ -93,14 +93,21 @@ export async function executarCompraAprovada(pedido: PedidoRow): Promise<Resulta
   }
 }
 
+// O banner de cookies fica fixo na tela e cobre botões importantes (já
+// vimos ele tampar o botão de finalizar o carrinho). Chamado mais de uma
+// vez ao longo do fluxo porque ele pode demorar pra renderizar ou
+// reaparecer.
+async function fecharBannerCookies(page: Page) {
+  const aceitarCookies = page.getByRole("button", { name: /^aceitar$/i });
+  if (await aceitarCookies.isVisible({ timeout: 8000 }).catch(() => false)) {
+    await aceitarCookies.click().catch(() => {});
+    await page.waitForTimeout(500);
+  }
+}
+
 async function passo1AbrirProdutoEAdicionarAoCarrinho(page: Page, pedido: PedidoRow) {
   await page.goto(pedido.produto_url_oficial!, { waitUntil: "domcontentloaded" });
-
-  // Banner de cookies costuma cobrir botões — fecha se aparecer.
-  const aceitarCookies = page.getByRole("button", { name: /aceitar/i });
-  if (await aceitarCookies.isVisible({ timeout: 5000 }).catch(() => false)) {
-    await aceitarCookies.click();
-  }
+  await fecharBannerCookies(page);
 
   if (pedido.quantidade > 1) {
     const inputQuantidade = page.getByRole("spinbutton").first();
@@ -128,6 +135,10 @@ async function passo1AbrirProdutoEAdicionarAoCarrinho(page: Page, pedido: Pedido
       "Cliquei em comprar mas o carrinho continuou vazio — o botão certo pode ser outro (ajustar seletor em passo1)."
     );
   }
+
+  // O banner de cookies pode ter reaparecido ou ainda não ter sido
+  // fechado a tempo — ele fica exatamente em cima do botão de checkout.
+  await fecharBannerCookies(page);
 
   // O botão de seguir pro checkout pode ser link OU botão, dependendo do
   // tema — procura pelos dois tipos.
