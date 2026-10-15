@@ -61,7 +61,14 @@ async function processarPedido(pedido: PedidoRow) {
   let resultado;
   try {
     const jaAprovado = pedido.automacao_status === "aprovado";
-    resultado = jaAprovado ? await executarCompraAprovada(pedido) : await executarCompra(pedido);
+    resultado = jaAprovado
+      ? await executarCompraAprovada(pedido)
+      : await executarCompra(pedido, {
+          // Só pra acompanhar testes locais: WORKER_HEADLESS=false abre o
+          // navegador na tela e WORKER_GRAVAR_VIDEO=<pasta> grava vídeo.
+          headless: process.env.WORKER_HEADLESS !== "false",
+          gravarVideoEm: process.env.WORKER_GRAVAR_VIDEO || undefined,
+        });
   } catch (err) {
     console.error(`[${pedido.id}] erro inesperado:`, err);
     await supabase
