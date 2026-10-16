@@ -35,6 +35,18 @@ export async function executarCompra(
     };
   }
 
+  // Sem CEP/número o passo3 não troca o endereço e a compra iria pro
+  // endereço SALVO na conta da loja (visto em produção, 2026-10-16).
+  const cep = (pedido.cep ?? "").replace(/\D/g, "");
+  if (cep.length !== 8 || !pedido.numero?.trim()) {
+    return {
+      sucesso: false,
+      precisaAprovacao: false,
+      erro: `Pedido sem endereço completo (CEP "${pedido.cep ?? ""}", número "${pedido.numero ?? ""}") — não dá pra entregar. Compra manual.`,
+      screenshot: Buffer.alloc(0),
+    };
+  }
+
   let browser: Browser | undefined;
   try {
     browser = await chromium.launch({ headless: opts?.headless ?? true, slowMo: opts?.headless === false ? 400 : 0 });
@@ -358,32 +370,32 @@ async function passo4ChegarNoPagamento(page: Page): Promise<number | null> {
 // Se não houver cartão salvo na tela, digita o cartão das variáveis de
 // ambiente (STORE_CARD_*), quando configurado.
 async function passo5SelecionarPagamentoSalvo(page: Page) {
-  // Quando a entrega vai pra um endereço novo (o normal: endereço do
-  // cliente), a loja esconde o cartão salvo e mostra o formulário de cartão
-  // novo. Então: se o formulário apareceu, digita o cartão; senão tenta o
-  // cartão salvo ("Mastercard com final 7081").
+  // NUNCA usa cartão salvo na conta da loja: a conta tem cartão de terceiro
+  // salvo. Sempre digita o cartão configurado em STORE_CARD_*. Se a loja
+  // mostrar um cartão salvo, clica em "Usar outro cartão" pra abrir o
+  // formulário de cartão novo.
+  if (!config.storeCardNumero) {
+    throw new Error("STORE_CARD_NUMERO não configurado — não há cartão pra pagar.");
+  }
+
   const opcaoCartao = page.getByText(/^cartão de crédito$/i).locator("visible=true");
   if (await aparece(opcaoCartao, 5000)) await opcaoCartao.first().click().catch(() => {});
 
-  const frame = await acharFormularioCartao(page, 20);
-  if (frame) {
-    if (!config.storeCardNumero) {
-      throw new Error("A loja pediu os dados do cartão e STORE_CARD_NUMERO não está configurado.");
+  let frame = await acharFormularioCartao(page, 10);
+  if (!frame) {
+    // O link pode estar na página ou dentro do iframe de pagamento da VTEX.
+    for (const f of page.frames()) {
+      const usarOutro = f.getByText(/usar outro cart[ãa]o/i).locator("visible=true");
+      if (await usarOutro.count().catch(() => 0)) {
+        await usarOutro.first().click().catch(() => {});
+        frame = await acharFormularioCartao(page, 15);
+        break;
+      }
     }
-    await preencherCartaoNovo(frame);
-    return;
   }
+  if (!frame) throw new Error("Formulário de cartão novo não apareceu na tela de pagamento.");
 
-  const cartaoSalvo = page.getByText(/com final \d{4}/i).locator("visible=true");
-  if (!(await aparece(cartaoSalvo, 5000))) {
-    throw new Error("Nem formulário de cartão nem cartão salvo apareceram na tela de pagamento.");
-  }
-  if (config.storeCardCvv) {
-    const campoCvv = page.getByPlaceholder(/cvv|código de segurança/i).or(page.getByLabel(/cvv|código de segurança/i));
-    if (await aparece(campoCvv.first(), 3000)) {
-      await campoCvv.first().fill(config.storeCardCvv);
-    }
-  }
+  await preencherCartaoNovo(frame);
 }
 
 const SELETOR_NUMERO_CARTAO = 'input[id*="Number"], input[name*="cardNumber"]';
