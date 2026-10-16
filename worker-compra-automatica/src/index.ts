@@ -1,18 +1,7 @@
 import { config } from "./config.js";
 import { supabase } from "./supabaseClient.js";
-import { executarCompra, executarCompraAprovada } from "./comprador.js";
+import { CAMPOS_PEDIDO, DOMINIO_SUPORTADO, MAX_TENTATIVAS, processarPedido } from "./processar.js";
 import type { PedidoRow } from "./types.js";
-
-const CAMPOS_PEDIDO =
-  "id, produto_nome, produto_url_oficial, quantidade, valor_pago, cliente_nome, cliente_cpf, " +
-  "cliente_telefone, cep, rua, numero, complemento, bairro, cidade, estado, automacao_status, automacao_tentativas";
-
-const MAX_TENTATIVAS = 3;
-
-// Por enquanto o robô só sabe comprar na Loja Santuário Nacional (VTEX).
-// Pedidos de outras lojas (ex: desatadoradosnosoficial.com.br, WooCommerce)
-// ficam de fora da automação e continuam no fluxo manual do painel /admin.
-const DOMINIO_SUPORTADO = "lojasantuarionacional.com.br";
 
 async function buscarProximoPedido(): Promise<PedidoRow | null> {
   const { data, error } = await supabase
@@ -31,101 +20,6 @@ async function buscarProximoPedido(): Promise<PedidoRow | null> {
     return null;
   }
   return data as PedidoRow | null;
-}
-
-async function marcarProcessando(id: string) {
-  await supabase.from("pedidos").update({ automacao_status: "processando" }).eq("id", id);
-}
-
-async function salvarScreenshot(pedidoId: string, screenshot: Buffer): Promise<string | null> {
-  if (screenshot.length === 0) return null;
-  const path = `${pedidoId}/${Date.now()}.png`;
-  const { error } = await supabase.storage
-    .from("automacao-screenshots")
-    .upload(path, screenshot, { contentType: "image/png" });
-  if (error) {
-    console.error("Erro ao subir screenshot:", error.message);
-    return null;
-  }
-  return path;
-}
-
-async function processarPedido(pedido: PedidoRow) {
-  console.log(`[${pedido.id}] iniciando compra automática (tentativa ${pedido.automacao_tentativas + 1})`);
-  await marcarProcessando(pedido.id);
-
-  // Rede de segurança: qualquer erro inesperado aqui (não só os que
-  // executarCompra já trata) precisa sempre tirar o pedido de
-  // "processando" — senão ele fica travado pra sempre, porque a busca só
-  // pega pedidos em "pendente"/"aprovado".
-  let resultado;
-  try {
-    const jaAprovado = pedido.automacao_status === "aprovado";
-    resultado = jaAprovado
-      ? await executarCompraAprovada(pedido)
-      : await executarCompra(pedido, {
-          // Só pra acompanhar testes locais: WORKER_HEADLESS=false abre o
-          // navegador na tela e WORKER_GRAVAR_VIDEO=<pasta> grava vídeo.
-          headless: process.env.WORKER_HEADLESS !== "false",
-          gravarVideoEm: process.env.WORKER_GRAVAR_VIDEO || undefined,
-        });
-  } catch (err) {
-    console.error(`[${pedido.id}] erro inesperado:`, err);
-    await supabase
-      .from("pedidos")
-      .update({
-        automacao_status: "falhou",
-        automacao_erro: err instanceof Error ? err.message : String(err),
-        automacao_tentativas: pedido.automacao_tentativas + 1,
-        automacao_atualizado_em: new Date().toISOString(),
-      })
-      .eq("id", pedido.id);
-    return;
-  }
-
-  const screenshotPath = await salvarScreenshot(pedido.id, resultado.screenshot);
-
-  if (!resultado.sucesso) {
-    console.error(`[${pedido.id}] falhou:`, resultado.erro);
-    await supabase
-      .from("pedidos")
-      .update({
-        automacao_status: "falhou",
-        automacao_erro: resultado.erro ?? "Erro desconhecido",
-        automacao_screenshot_path: screenshotPath,
-        automacao_tentativas: pedido.automacao_tentativas + 1,
-        automacao_atualizado_em: new Date().toISOString(),
-      })
-      .eq("id", pedido.id);
-    return;
-  }
-
-  if (resultado.precisaAprovacao) {
-    console.log(`[${pedido.id}] carrinho pronto, aguardando aprovação no painel`);
-    await supabase
-      .from("pedidos")
-      .update({
-        automacao_status: "aguardando_aprovacao",
-        automacao_screenshot_path: screenshotPath,
-        automacao_erro: null,
-        automacao_atualizado_em: new Date().toISOString(),
-      })
-      .eq("id", pedido.id);
-    return;
-  }
-
-  console.log(`[${pedido.id}] compra concluída — pedido loja: ${resultado.numeroPedidoLoja ?? "não identificado"}`);
-  await supabase
-    .from("pedidos")
-    .update({
-      status: "comprado_na_loja",
-      automacao_status: "comprado",
-      numero_pedido_loja_oficial: resultado.numeroPedidoLoja ?? null,
-      automacao_screenshot_path: screenshotPath,
-      automacao_erro: null,
-      automacao_atualizado_em: new Date().toISOString(),
-    })
-    .eq("id", pedido.id);
 }
 
 async function loop() {

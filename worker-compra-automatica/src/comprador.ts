@@ -19,12 +19,34 @@ export interface ResultadoCompra {
   precisaAprovacao: boolean;
   numeroPedidoLoja?: string;
   erro?: string;
+  // true quando a falha garantidamente não gerou cobrança e o pedido pode
+  // voltar pra fila (ex.: ninguém marcou o captcha a tempo).
+  podeTentarDeNovo?: boolean;
   screenshot: Buffer;
 }
 
+// Modo assistido (fila no computador do usuário): o robô faz tudo, clica em
+// "Finalizar compra" e, se a loja pedir o reCAPTCHA, chama uma pessoa pra
+// marcar — o robô NUNCA interage com o captcha.
+export interface OpcoesAssistido {
+  legenda: string;
+  aoPedirAtencao: (mensagem: string) => void;
+  esperaMaximaMs: number;
+}
+
+class CaptchaNaoResolvido extends Error {}
+
 export async function executarCompra(
   pedido: PedidoRow,
-  opts?: { headless?: boolean; pausaAntesDeFecharMs?: number; testarPagamentoSemFinalizar?: boolean; gravarVideoEm?: string }
+  opts?: {
+    headless?: boolean;
+    pausaAntesDeFecharMs?: number;
+    testarPagamentoSemFinalizar?: boolean;
+    gravarVideoEm?: string;
+    assistido?: OpcoesAssistido;
+    // Uma pessoa já aprovou este pedido (painel ou fila assistida).
+    ignorarTeto?: boolean;
+  }
 ): Promise<ResultadoCompra> {
   if (!pedido.produto_url_oficial) {
     return {
@@ -49,7 +71,12 @@ export async function executarCompra(
 
   let browser: Browser | undefined;
   try {
-    browser = await chromium.launch({ headless: opts?.headless ?? true, slowMo: opts?.headless === false ? 400 : 0 });
+    browser = await chromium.launch({
+      headless: opts?.headless ?? true,
+      slowMo: opts?.headless === false ? 400 : 0,
+      // Deixa a página tocar o som de aviso sem precisar de clique antes.
+      args: opts?.assistido ? ["--autoplay-policy=no-user-gesture-required"] : [],
+    });
     const tamanho = { width: 1280, height: 800 };
     const context = await browser.newContext({
       locale: "pt-BR",
@@ -81,7 +108,7 @@ export async function executarCompra(
     // Trava de segurança: nunca paga sozinho acima do teto configurado,
     // mesmo em modo automático — protege contra produto/preço errado.
     const acimaDoTeto = totalCarrinho !== null && totalCarrinho > config.valorMaximoCompraAutomatica;
-    const deveParar = config.compraModo === "validacao" || acimaDoTeto;
+    const deveParar = (!opts?.assistido && config.compraModo === "validacao") || (acimaDoTeto && !opts?.ignorarTeto);
 
     if (deveParar) {
       const screenshot = await page.screenshot({ fullPage: true });
@@ -90,7 +117,7 @@ export async function executarCompra(
     }
 
     await passo5SelecionarPagamentoSalvo(page);
-    const numeroPedidoLoja = await passo6FinalizarCompra(page);
+    const numeroPedidoLoja = await passo6FinalizarCompra(page, opts?.assistido, totalCarrinho);
     const screenshot = await page.screenshot({ fullPage: true });
     if (opts?.pausaAntesDeFecharMs) await page.waitForTimeout(opts.pausaAntesDeFecharMs);
 
@@ -102,6 +129,7 @@ export async function executarCompra(
       sucesso: false,
       precisaAprovacao: false,
       erro: err instanceof Error ? err.message : String(err),
+      podeTentarDeNovo: err instanceof CaptchaNaoResolvido,
       screenshot,
     };
   } finally {
@@ -118,7 +146,7 @@ export async function executarCompraAprovada(pedido: PedidoRow): Promise<Resulta
   const original = config.compraModo;
   config.compraModo = "automatico";
   try {
-    return await executarCompra(pedido);
+    return await executarCompra(pedido, { ignorarTeto: true });
   } finally {
     config.compraModo = original;
   }
@@ -513,15 +541,43 @@ async function acharBotaoFinalizar(page: Page): Promise<Locator> {
   throw new Error(`Nenhum botão "Finalizar compra" dentro da tela (${total} encontrados).`);
 }
 
-async function passo6FinalizarCompra(page: Page): Promise<string | undefined> {
+async function passo6FinalizarCompra(
+  page: Page,
+  assistido?: OpcoesAssistido,
+  totalCarrinho?: number | null
+): Promise<string | undefined> {
   const finalizar = await acharBotaoFinalizar(page);
   await finalizar.click({ timeout: 10000 });
 
-  const confirmou = await page
-    .waitForURL(/orderPlaced/i, { timeout: 90000 })
-    .then(() => true)
-    .catch(() => false);
+  // A loja pode abrir o reCAPTCHA ("Verificação de segurança"). Sem pessoa
+  // (servidor), espera 90s e falha. No modo assistido, avisa e espera a
+  // pessoa marcar; o robô não toca no captcha.
+  const captcha = page.getByText(/verifica[çc][ãa]o de seguran[çc]a/i).locator("visible=true");
+  const limite = Date.now() + (assistido ? assistido.esperaMaximaMs : 90000);
+  let avisou = false;
+  let confirmou = false;
+  while (Date.now() < limite) {
+    if (/orderPlaced/i.test(page.url())) {
+      confirmou = true;
+      break;
+    }
+    if (assistido && !avisou && (await captcha.count().catch(() => 0))) {
+      avisou = true;
+      const total = totalCarrinho != null ? ` — R$ ${totalCarrinho.toFixed(2).replace(".", ",")}` : "";
+      const mensagem = `${assistido.legenda}${total}: marque "Não sou um robô" para finalizar.`;
+      await page.bringToFront().catch(() => {});
+      await mostrarAviso(page, mensagem);
+      assistido.aoPedirAtencao(mensagem);
+    }
+    await page.waitForTimeout(1000);
+  }
+
   if (!confirmou) {
+    if (await captcha.count().catch(() => 0)) {
+      throw new CaptchaNaoResolvido(
+        `A loja pediu o captcha e ninguém marcou a tempo — pedido NÃO foi feito, volta pra fila.`
+      );
+    }
     const aviso = await page
       .locator(".payment-unauthorized, .alert, [class*='error'], [class*='notification']")
       .locator("visible=true")
@@ -529,7 +585,7 @@ async function passo6FinalizarCompra(page: Page): Promise<string | undefined> {
       .innerText()
       .catch(() => "");
     throw new Error(
-      `Cliquei em "Finalizar compra" mas a loja não confirmou o pedido em 90s` +
+      `Cliquei em "Finalizar compra" mas a loja não confirmou o pedido` +
         (aviso ? ` — mensagem na tela: ${aviso.trim().slice(0, 200)}` : "") +
         ". Conferir no site da loja antes de tentar de novo."
     );
@@ -540,4 +596,28 @@ async function passo6FinalizarCompra(page: Page): Promise<string | undefined> {
   if (og) return og;
   const textoConfirmacao = await page.getByText(/pedido n[º°úu]|número do pedido|pedido #/i).first().textContent().catch(() => null);
   return textoConfirmacao?.match(/(\d[\w.\-]{3,})/)?.[1];
+}
+
+// Faixa amarela no topo da página + bipe, pra chamar a pessoa no captcha.
+async function mostrarAviso(page: Page, mensagem: string) {
+  await page
+    .evaluate((texto) => {
+      const faixa = document.createElement("div");
+      faixa.textContent = "⚠️ " + texto;
+      faixa.style.cssText =
+        "position:fixed;top:0;left:0;right:0;z-index:2147483647;background:#ffd400;color:#111;" +
+        "font:bold 20px sans-serif;padding:16px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.3)";
+      document.body.appendChild(faixa);
+      try {
+        const ctx = new AudioContext();
+        [0, 0.35, 0.7].forEach((t) => {
+          const osc = ctx.createOscillator();
+          osc.frequency.value = 880;
+          osc.connect(ctx.destination);
+          osc.start(ctx.currentTime + t);
+          osc.stop(ctx.currentTime + t + 0.2);
+        });
+      } catch {}
+    }, mensagem)
+    .catch(() => {});
 }
