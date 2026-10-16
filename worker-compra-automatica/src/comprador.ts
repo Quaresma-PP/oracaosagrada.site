@@ -71,6 +71,8 @@ export async function executarCompra(
     // Só pra teste local: preenche o pagamento e para antes de finalizar.
     if (opts?.testarPagamentoSemFinalizar) {
       await passo5SelecionarPagamentoSalvo(page);
+      const botao = await acharBotaoFinalizar(page);
+      console.log("Botão que seria clicado:", await botao.boundingBox());
       const screenshot = await page.screenshot({ fullPage: true });
       if (opts.pausaAntesDeFecharMs) await page.waitForTimeout(opts.pausaAntesDeFecharMs);
       return { sucesso: true, precisaAprovacao: true, screenshot };
@@ -452,19 +454,68 @@ async function preencherCartaoNovo(frame: Frame) {
     await cpfTitular.fill(config.storeCardCpf);
   }
 
-  // Parcelas: o select tem id "...Brand" (nome confuso da VTEX) e a primeira
-  // opção é "Pagamento à vista". Garante à vista.
+  // Parcelas: o select tem id "...Brand" (nome confuso da VTEX). A primeira
+  // opção é o texto vazio "Em quantas parcelas deseja pagar?" e as opções de
+  // verdade só carregam depois do número do cartão — espera e escolhe a
+  // primeira opção com valor ("Pagamento à vista"). Visto em produção
+  // 2026-10-16: com index 0 ficou "Campo obrigatório".
   const parcelas = frame.locator('select[id*="nstallment"], select[id$="Brand"]').first();
-  if (await parcelas.count()) await parcelas.selectOption({ index: 0 }).catch(() => {});
+  let escolheuParcela = false;
+  for (let i = 0; i < 15 && !escolheuParcela; i++) {
+    const estado = await parcelas
+      .evaluate((el: HTMLSelectElement) => ({
+        atual: el.value,
+        textoAtual: el.selectedOptions[0]?.text ?? "",
+        primeira: [...el.options].find((o) => o.value && !o.disabled && !/em quantas parcelas/i.test(o.text))?.value ?? null,
+      }))
+      .catch(() => null);
+    const jaEscolhida = estado && estado.atual && !/em quantas parcelas/i.test(estado.textoAtual);
+    if (jaEscolhida) {
+      // Confirma que continua escolhida depois do formulário se redesenhar.
+      await frame.page().waitForTimeout(1500);
+      const aindaEscolhida = await parcelas
+        .evaluate((el: HTMLSelectElement) => !!el.value && !/em quantas parcelas/i.test(el.selectedOptions[0]?.text ?? ""))
+        .catch(() => false);
+      if (aindaEscolhida) escolheuParcela = true;
+      continue;
+    }
+    if (estado?.primeira) {
+      await parcelas.selectOption(estado.primeira).catch(() => {});
+      // Dispara change/blur como um usuário faria (o formulário é Knockout).
+      await parcelas.dispatchEvent("change").catch(() => {});
+      await parcelas.blur().catch(() => {});
+    }
+    await frame.page().waitForTimeout(1000);
+  }
+  if (!escolheuParcela) throw new Error("As opções de parcelamento não carregaram no formulário do cartão.");
 }
 
 // AINDA NÃO CONFIRMADO numa compra real. Depois do clique a VTEX leva pra
 // /checkout/orderPlaced?og=<número do pedido>. Se não chegar lá (cartão
 // recusado, antifraude), lança erro com a mensagem da tela — o worker marca o
 // pedido como "falhou" e NÃO tenta de novo, pra nunca pagar duas vezes.
+// A página tem mais de um "Finalizar compra" (um da versão celular fica
+// fora da tela). Escolhe o que está dentro da largura da janela — o do
+// resumo do pedido. Visto em produção 2026-10-16.
+async function acharBotaoFinalizar(page: Page): Promise<Locator> {
+  const candidatos = page.getByRole("button", { name: /finalizar compra/i }).locator("visible=true");
+  const total = await candidatos.count();
+  for (let i = 0; i < total; i++) {
+    const botao = candidatos.nth(i);
+    const dentroDaTela = await botao
+      .evaluate((el) => {
+        const r = el.getBoundingClientRect();
+        return r.width > 0 && r.height > 0 && r.left >= 0 && r.right <= window.innerWidth;
+      })
+      .catch(() => false);
+    if (dentroDaTela) return botao;
+  }
+  throw new Error(`Nenhum botão "Finalizar compra" dentro da tela (${total} encontrados).`);
+}
+
 async function passo6FinalizarCompra(page: Page): Promise<string | undefined> {
-  const finalizar = page.getByRole("button", { name: /finalizar compra/i }).locator("visible=true");
-  await finalizar.first().click({ timeout: 10000 });
+  const finalizar = await acharBotaoFinalizar(page);
+  await finalizar.click({ timeout: 10000 });
 
   const confirmou = await page
     .waitForURL(/orderPlaced/i, { timeout: 90000 })
