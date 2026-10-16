@@ -3,3 +3,4 @@ dist
 .env
 videos
 *.log
+.perfil-navegador/

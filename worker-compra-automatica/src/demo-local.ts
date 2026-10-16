@@ -4,6 +4,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { executarCompra } from "./comprador.js";
 import { config } from "./config.js";
+import { PERFIL_DIR } from "./perfil.js";
 import type { PedidoRow } from "./types.js";
 
 const PEDIDO_ID = process.argv[2];
@@ -18,6 +19,8 @@ const URL_PRODUTO = arg("url");
 // --comprar: FINALIZA A COMPRA DE VERDADE (cobra no cartão), ignorando
 // COMPRA_MODO=validacao. A trava de VALOR_MAXIMO continua valendo.
 const COMPRAR = process.argv.includes("--comprar");
+// --perfil: usa o perfil logado da fila assistida (atalho "Entrar na conta").
+const PERFIL = process.argv.includes("--perfil");
 // --nome= --cep= --numero= --complemento=: troca destinatário/endereço só na
 // memória — pra compra de teste chegar num endereço real.
 const ENDERECO = { nome: arg("nome"), cep: arg("cep"), numero: arg("numero"), complemento: arg("complemento") };
@@ -60,6 +63,7 @@ async function main() {
     pausaAntesDeFecharMs: 60000,
     testarPagamentoSemFinalizar: TESTAR_PAGAMENTO,
     gravarVideoEm: GRAVAR ? "videos" : undefined,
+    perfilDir: PERFIL ? PERFIL_DIR : undefined,
   });
   if (GRAVAR) console.log("Vídeo salvo na pasta worker-compra-automatica/videos");
   console.log("Resultado:", {

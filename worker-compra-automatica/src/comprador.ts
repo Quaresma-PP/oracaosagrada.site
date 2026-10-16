@@ -10,7 +10,7 @@
 // (passo5SelecionarPagamentoSalvo) continuam com seletores best-effort, não
 // confirmados. Precisam de uma gravação nova logada na conta de verdade
 // antes de confiar no modo automático de pagamento.
-import { chromium, type Browser, type Frame, type Locator, type Page } from "playwright";
+import { chromium, type Browser, type BrowserContext, type Frame, type Locator, type Page } from "playwright";
 import { config } from "./config.js";
 import type { PedidoRow } from "./types.js";
 
@@ -46,6 +46,9 @@ export async function executarCompra(
     assistido?: OpcoesAssistido;
     // Uma pessoa já aprovou este pedido (painel ou fila assistida).
     ignorarTeto?: boolean;
+    // Pasta de perfil do Chrome com o login da loja salvo (fila assistida):
+    // o navegador já abre logado na conta.
+    perfilDir?: string;
   }
 ): Promise<ResultadoCompra> {
   if (!pedido.produto_url_oficial) {
@@ -69,16 +72,10 @@ export async function executarCompra(
     };
   }
 
-  let browser: Browser | undefined;
+  let context: BrowserContext | undefined;
   try {
-    browser = await chromium.launch({
-      headless: opts?.headless ?? true,
-      slowMo: opts?.headless === false ? 400 : 0,
-      // Deixa a página tocar o som de aviso sem precisar de clique antes.
-      args: opts?.assistido ? ["--autoplay-policy=no-user-gesture-required"] : [],
-    });
     const tamanho = { width: 1280, height: 800 };
-    const context = await browser.newContext({
+    const opcoesContexto = {
       locale: "pt-BR",
       viewport: tamanho,
       // Sem isso o Chromium headless se identifica como "HeadlessChrome" e a
@@ -87,8 +84,20 @@ export async function executarCompra(
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
       // O vídeo só é gravado no disco quando o navegador fecha (no finally).
       recordVideo: opts?.gravarVideoEm ? { dir: opts.gravarVideoEm, size: tamanho } : undefined,
-    });
-    const page = await context.newPage();
+    };
+    const opcoesNavegador = {
+      headless: opts?.headless ?? true,
+      slowMo: opts?.headless === false ? 400 : 0,
+      // Deixa a página tocar o som de aviso sem precisar de clique antes.
+      args: opts?.assistido ? ["--autoplay-policy=no-user-gesture-required"] : [],
+    };
+    if (opts?.perfilDir) {
+      context = await chromium.launchPersistentContext(opts.perfilDir, { ...opcoesNavegador, ...opcoesContexto });
+    } else {
+      const browser: Browser = await chromium.launch(opcoesNavegador);
+      context = await browser.newContext(opcoesContexto);
+    }
+    const page = context.pages()[0] ?? (await context.newPage());
 
     await passo1AbrirProdutoEAdicionarAoCarrinho(page, pedido);
     await passo2DadosPessoais(page, pedido);
@@ -96,6 +105,8 @@ export async function executarCompra(
     const totalCarrinho = await passo4ChegarNoPagamento(page);
 
     // Só pra teste local: preenche o pagamento e para antes de finalizar.
+    await conferirCarrinho(page, pedido);
+
     if (opts?.testarPagamentoSemFinalizar) {
       await passo5SelecionarPagamentoSalvo(page);
       const botao = await acharBotaoFinalizar(page);
@@ -117,13 +128,14 @@ export async function executarCompra(
     }
 
     await passo5SelecionarPagamentoSalvo(page);
+    await conferirCarrinho(page, pedido);
     const numeroPedidoLoja = await passo6FinalizarCompra(page, opts?.assistido, totalCarrinho);
     const screenshot = await page.screenshot({ fullPage: true });
     if (opts?.pausaAntesDeFecharMs) await page.waitForTimeout(opts.pausaAntesDeFecharMs);
 
     return { sucesso: true, precisaAprovacao: false, numeroPedidoLoja, screenshot };
   } catch (err) {
-    const page = browser?.contexts()[0]?.pages()[0];
+    const page = context?.pages()[0];
     const screenshot = page ? await page.screenshot({ fullPage: true }).catch(() => Buffer.alloc(0)) : Buffer.alloc(0);
     return {
       sucesso: false,
@@ -133,7 +145,8 @@ export async function executarCompra(
       screenshot,
     };
   } finally {
-    await browser?.close();
+    await context?.close();
+    await context?.browser()?.close().catch(() => {});
   }
 }
 
@@ -182,8 +195,48 @@ function primeiroEUltimoNome(nomeCompleto: string): { primeiro: string; ultimo: 
   };
 }
 
+// API de checkout da própria loja (VTEX), usada pelo site — com os cookies
+// do navegador, enxerga o carrinho da sessão/conta logada.
+const LOJA_URL = "https://www.lojasantuarionacional.com.br";
+
+async function lerCarrinho(page: Page): Promise<{ id: string; itens: { url: string; quantidade: number }[] }> {
+  const resp = await page.request.get(`${LOJA_URL}/api/checkout/pub/orderForm`);
+  const json = await resp.json();
+  return {
+    id: json.orderFormId,
+    itens: (json.items ?? []).map((i: { detailUrl?: string; quantity: number }) => ({
+      url: i.detailUrl ?? "",
+      quantidade: i.quantity,
+    })),
+  };
+}
+
+// Logado, o carrinho fica salvo na conta entre execuções — esvazia antes de
+// adicionar, senão compra item que sobrou (visto em teste 2026-10-16: 2 terços).
+async function esvaziarCarrinho(page: Page) {
+  const carrinho = await lerCarrinho(page);
+  if (carrinho.itens.length === 0) return;
+  await page.request.post(`${LOJA_URL}/api/checkout/pub/orderForm/${carrinho.id}/items/removeAll`, { data: {} });
+  const depois = await lerCarrinho(page);
+  if (depois.itens.length > 0) throw new Error("Não consegui esvaziar o carrinho da conta antes de comprar.");
+}
+
+// Trava antes de pagar: o carrinho tem que ter exatamente o produto e a
+// quantidade do pedido.
+async function conferirCarrinho(page: Page, pedido: PedidoRow) {
+  const { itens } = await lerCarrinho(page);
+  const caminho = new URL(pedido.produto_url_oficial!).pathname;
+  const ok = itens.length === 1 && itens[0].url === caminho && itens[0].quantidade === pedido.quantidade;
+  if (!ok) {
+    const descricao = itens.map((i) => `${i.url} x${i.quantidade}`).join(", ") || "vazio";
+    throw new Error(`Carrinho diferente do pedido (esperado ${caminho} x${pedido.quantidade}, tem: ${descricao}). Não paguei.`);
+  }
+}
+
 export async function passo1AbrirProdutoEAdicionarAoCarrinho(page: Page, pedido: PedidoRow) {
   await page.goto(pedido.produto_url_oficial!, { waitUntil: "domcontentloaded" });
+  await esvaziarCarrinho(page);
+  await page.reload({ waitUntil: "domcontentloaded" });
   await fecharBannerCookies(page);
 
   if (pedido.quantidade > 1) {
@@ -249,7 +302,16 @@ export async function passo1AbrirProdutoEAdicionarAoCarrinho(page: Page, pedido:
 async function passo2DadosPessoais(page: Page, pedido: PedidoRow) {
   await page.waitForLoadState("domcontentloaded");
 
+  // Já logado na conta (perfil da fila assistida): a loja não pede e-mail e
+  // vai direto pro resumo com o endereço salvo — só troca a entrega.
   const campoEmail = page.getByPlaceholder("seu@email.com");
+  const editarEntregaLogado = page.locator("#edit-shipping-data");
+  await campoEmail.or(editarEntregaLogado).first().waitFor({ state: "visible", timeout: 20000 }).catch(() => {});
+  if (!(await campoEmail.isVisible().catch(() => false)) && (await editarEntregaLogado.isVisible().catch(() => false))) {
+    await abrirOutroEndereco(page);
+    return;
+  }
+
   await campoEmail.click({ timeout: 15000 });
   await campoEmail.fill(config.storeLoginEmail);
   await page.getByRole("button", { name: "Continuar" }).click();
@@ -276,13 +338,7 @@ async function passo2DadosPessoais(page: Page, pedido: PedidoRow) {
   if (await aparece(continuarComACompra, 15000)) {
     await continuarComACompra.click();
     await page.waitForTimeout(1500);
-    const editarEntrega = page.locator("#edit-shipping-data");
-    if (await aparece(editarEntrega, 5000)) await editarEntrega.click();
-    await page
-      .getByRole("button", { name: /entregar em outro endere/i })
-      .or(page.getByRole("link", { name: /entregar em outro endere/i }))
-      .first()
-      .click({ timeout: 10000 });
+    await abrirOutroEndereco(page);
     return;
   }
 
@@ -320,6 +376,18 @@ async function passo2DadosPessoais(page: Page, pedido: PedidoRow) {
     const erroValidacao = await page.getByText(/informe um documento válido|campo obrigatório/i).first().textContent().catch(() => null);
     throw new Error(`Não avançou da etapa "Dados pessoais"${erroValidacao ? ` — erro na tela: ${erroValidacao}` : ""}.`);
   }
+}
+
+// Abre a edição da entrega e escolhe "Entregar em outro endereço", pro
+// passo3 preencher o endereço do cliente no lugar do endereço salvo.
+async function abrirOutroEndereco(page: Page) {
+  const editarEntrega = page.locator("#edit-shipping-data");
+  if (await aparece(editarEntrega, 5000)) await editarEntrega.click();
+  await page
+    .getByRole("button", { name: /entregar em outro endere/i })
+    .or(page.getByRole("link", { name: /entregar em outro endere/i }))
+    .first()
+    .click({ timeout: 10000 });
 }
 
 async function passo3Endereco(page: Page, pedido: PedidoRow) {

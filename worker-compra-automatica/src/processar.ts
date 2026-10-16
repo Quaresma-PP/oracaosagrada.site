@@ -1,6 +1,7 @@
 import { supabase } from "./supabaseClient.js";
 import { executarCompra, executarCompraAprovada, type OpcoesAssistido, type ResultadoCompra } from "./comprador.js";
 import type { PedidoRow } from "./types.js";
+import { PERFIL_DIR } from "./perfil.js";
 
 export const CAMPOS_PEDIDO =
   "id, produto_nome, produto_url_oficial, quantidade, valor_pago, cliente_nome, cliente_cpf, " +
@@ -45,7 +46,7 @@ export async function processarPedido(pedido: PedidoRow, assistido?: OpcoesAssis
     if (assistido) {
       // Na fila assistida a pessoa vê cada pedido antes e marca o captcha,
       // então ela é a aprovação — o teto de valor não se aplica.
-      resultado = await executarCompra(pedido, { headless: false, assistido, ignorarTeto: true });
+      resultado = await executarCompra(pedido, { headless: false, assistido, ignorarTeto: true, perfilDir: PERFIL_DIR });
     } else {
       const jaAprovado = pedido.automacao_status === "aprovado";
       resultado = jaAprovado
